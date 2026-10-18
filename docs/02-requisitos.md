@@ -21,7 +21,6 @@ Pode:
 - acessar o formulário através do link;
 - enviar uma foto;
 - escrever uma mensagem;
-- informar seu nome;
 - enviar sua homenagem.
 
 ### 1.3 Visitante do mural
@@ -54,17 +53,15 @@ Pode:
 | RF-10  | Visualizar detalhes             | O sistema deve permitir que o usuário autenticado visualize os dados de uma celebração que criou.               |
 | RF-11  | Visualizar homenagens recebidas | O sistema deve permitir que o usuário autenticado visualize as homenagens recebidas em sua celebração.          |
 | RF-12  | Acessar formulário público      | O sistema deve permitir que uma pessoa acesse o formulário de homenagem através do link de contribuição.        |
-| RF-13  | Informar nome                   | O sistema deve permitir que o convidado informe seu nome.                                                       |
-| RF-14  | Anexar imagem                   | O sistema deve permitir que o convidado anexe uma imagem à homenagem.                                           |
-| RF-15  | Informar mensagem               | O sistema deve permitir que o convidado escreva uma mensagem para o aniversariante.                             |
-| RF-16  | Enviar homenagem                | O sistema deve permitir que o convidado envie sua homenagem.                                                    |
-| RF-17  | Confirmar envio                 | Após o envio bem-sucedido, o sistema deve informar ao convidado que sua homenagem foi registrada.               |
-| RF-18  | Acessar mural                   | O sistema deve permitir que qualquer pessoa com o link do mural visualize a celebração.                         |
-| RF-19  | Exibir título                   | O sistema deve exibir uma mensagem de celebração contendo o nome do aniversariante.                             |
-| RF-20  | Exibir homenagens               | O sistema deve exibir as homenagens associadas à celebração.                                                    |
-| RF-21  | Exibir imagens                  | O sistema deve exibir as imagens enviadas pelos convidados.                                                     |
-| RF-22  | Exibir mensagens                | O sistema deve exibir as mensagens enviadas pelos convidados.                                                   |
-| RF-23  | Exibir autor                    | Quando informado pelo convidado, o sistema deve exibir o nome do autor da homenagem.                            |
+| RF-13  | Anexar imagem                   | O sistema deve permitir que o convidado anexe uma imagem à homenagem.                                           |
+| RF-14  | Informar mensagem               | O sistema deve permitir que o convidado escreva uma mensagem para o aniversariante.                             |
+| RF-15  | Enviar homenagem                | O sistema deve permitir que o convidado envie sua homenagem.                                                    |
+| RF-16  | Confirmar envio                 | Após o envio bem-sucedido, o sistema deve informar ao convidado que sua homenagem foi registrada.               |
+| RF-17  | Acessar mural                   | O sistema deve permitir que qualquer pessoa com o link do mural visualize a celebração.                         |
+| RF-18  | Exibir título                   | O sistema deve exibir uma mensagem de celebração contendo o nome do aniversariante.                             |
+| RF-19  | Exibir homenagens               | O sistema deve exibir as homenagens associadas à celebração.                                                    |
+| RF-20  | Exibir imagens                  | O sistema deve exibir as imagens enviadas pelos convidados.                                                     |
+| RF-21  | Exibir mensagens                | O sistema deve exibir as mensagens enviadas pelos convidados.                                                   |
 
 ---
 
