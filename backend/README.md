@@ -4,27 +4,40 @@ Descrever
 
 ## Endpoints
 
+Cada segmento das rotas usa só a primeira letra do que representa:
+
+| Letra | Significado |
+| ----- | ----------- |
+| `u` | usuário |
+| `c` | celebração (no início da rota) ou contribuir (em `/h/c`) |
+| `h` | homenagem |
+| `f` | find (buscar) |
+| `n` | new (criar) |
+| `e` | edit (alterar) |
+| `r` | remove (excluir) |
+| `m` | mural |
+
 ### Usuário
 
 | Método | Rota | Descrição |
 | ------ | ---- | --------- |
-| GET | `/user` | Lista os usuários |
-| GET | `/user/find/{id}` | Busca um usuário pelo id |
-| POST | `/user/new` | Cadastra um usuário |
-| DELETE | `/user/del/{id}` | Exclui um usuário e suas celebrações |
+| GET | `/u` | Lista os usuários |
+| GET | `/u/f/{id}` | Busca um usuário pelo id |
+| POST | `/u/n` | Cadastra um usuário |
+| DELETE | `/u/r/{id}` | Exclui um usuário e suas celebrações |
 
 ### Celebração (administrativo)
 
 | Método | Rota | Descrição |
 | ------ | ---- | --------- |
-| GET | `/celebracao/user/{usuarioId}` | Lista as celebrações de um usuário |
-| GET | `/celebracao/find/{id}` | Detalhes de uma celebração |
-| GET | `/celebracao/{id}/homenagens` | Homenagens recebidas pela celebração |
-| POST | `/celebracao/new` | Cria uma celebração e gera os links públicos |
-| PUT | `/celebracao/edit/{id}` | Altera o aniversariante e a data |
-| DELETE | `/celebracao/del/{id}` | Exclui a celebração e suas homenagens |
+| GET | `/c/u/{usuarioId}` | Lista as celebrações de um usuário |
+| GET | `/c/f/{id}` | Detalhes de uma celebração |
+| GET | `/c/{id}/h` | Homenagens recebidas pela celebração |
+| POST | `/c/n` | Cria uma celebração e gera os links públicos |
+| PUT | `/c/e/{id}` | Altera o aniversariante e a data |
+| DELETE | `/c/r/{id}` | Exclui a celebração e suas homenagens |
 
-Corpo de `POST /celebracao/new`:
+Corpo de `POST /c/n`:
 
 ```json
 {
@@ -34,7 +47,7 @@ Corpo de `POST /celebracao/new`:
 }
 ```
 
-`PUT /celebracao/edit/{id}` recebe `nomeAniversariante` e `dataCelebracao`.
+`PUT /c/e/{id}` recebe `nomeAniversariante` e `dataCelebracao`.
 
 Resposta (`201 Created`):
 
@@ -56,12 +69,12 @@ O servidor gera `tokenContribuicao` e `tokenMural`, que são usados nas rotas p�
 
 | Método | Rota | Acesso | Descrição |
 | ------ | ---- | ------ | --------- |
-| GET | `/homenagem/contribuir/{tokenContribuicao}` | Público | Nome do aniversariante e data, para o formulário |
-| POST | `/homenagem/contribuir/{tokenContribuicao}` | Público | Envia uma homenagem |
-| GET | `/homenagem/mural/{tokenMural}` | Público | Mural com a celebração e todas as homenagens |
-| DELETE | `/homenagem/del/{id}` | Administrativo | Exclui uma homenagem |
+| GET | `/h/c/{tokenContribuicao}` | Público | Nome do aniversariante e data, para o formulário |
+| POST | `/h/c/{tokenContribuicao}` | Público | Envia uma homenagem |
+| GET | `/h/m/{tokenMural}` | Público | Mural com a celebração e todas as homenagens |
+| DELETE | `/h/r/{id}` | Administrativo | Exclui uma homenagem |
 
-Corpo de `POST /homenagem/contribuir/{tokenContribuicao}`:
+Corpo de `POST /h/c/{tokenContribuicao}`:
 
 ```json
 {
@@ -72,7 +85,7 @@ Corpo de `POST /homenagem/contribuir/{tokenContribuicao}`:
 
 Os dois campos são opcionais, mas a homenagem precisa ter pelo menos um deles. A mensagem tem limite de 2.000 caracteres. Por enquanto, `imagemUrl` é apenas uma URL em texto; o upload de arquivos ainda não foi implementado.
 
-Resposta de `GET /homenagem/mural/{tokenMural}`:
+Resposta de `GET /h/m/{tokenMural}`:
 
 ```json
 {

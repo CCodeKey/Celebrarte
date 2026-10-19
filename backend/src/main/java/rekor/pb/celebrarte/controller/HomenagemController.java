@@ -9,7 +9,7 @@ import rekor.pb.celebrarte.service.HomenagemService;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("homenagem")
+@RequestMapping("h")
 public class HomenagemController {
     private HomenagemService homenagemService;
 
@@ -17,22 +17,22 @@ public class HomenagemController {
         this.homenagemService = homenagemService;
     }
 
-    @GetMapping("contribuir/{token}")
+    @GetMapping("c/{token}")
     public MuralDto buscarFormulario(@PathVariable("token") String token) {
         return homenagemService.buscarFormulario(token);
     }
 
-    @PostMapping("contribuir/{token}")
+    @PostMapping("c/{token}")
     @ResponseStatus(HttpStatus.CREATED)
     public HomenagemDto enviarHomenagem(@PathVariable("token") String token, @RequestBody HomenagemDto dto) {
         return homenagemService.enviar(token, dto);
     }
-    @GetMapping("mural/{token}")
+    @GetMapping("m/{token}")
     public MuralDto buscarMural(@PathVariable("token") String token) {
         return homenagemService.buscarMural(token);
     }
 
-    @DeleteMapping("del/{id}")
+    @DeleteMapping("r/{id}")
     public void deletarHomenagem(@PathVariable("id") UUID id) {
         homenagemService.deletar(id);
     }

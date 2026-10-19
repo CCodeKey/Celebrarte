@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("celebracao")
+@RequestMapping("c")
 public class CelebracaoController {
     private CelebracaoService celebracaoService;
     private HomenagemService homenagemService;
@@ -21,33 +21,33 @@ public class CelebracaoController {
         this.homenagemService = homenagemService;
     }
 
-    @GetMapping("user/{usuarioId}")
+    @GetMapping("u/{usuarioId}")
     public List<CelebracaoDto> listarCelebracoes(@PathVariable("usuarioId") UUID usuarioId) {
         return celebracaoService.listarPorUsuario(usuarioId);
     }
 
-    @GetMapping("find/{id}")
+    @GetMapping("f/{id}")
     public CelebracaoDto buscarCelebracao(@PathVariable("id") UUID id) {
         return celebracaoService.buscar(id);
     }
 
-    @GetMapping("{id}/homenagens")
+    @GetMapping("{id}/h")
     public List<HomenagemDto> listarHomenagens(@PathVariable("id") UUID id) {
         return homenagemService.listarPorCelebracao(id);
     }
 
-    @PostMapping("new")
+    @PostMapping("n")
     @ResponseStatus(HttpStatus.CREATED)
     public CelebracaoDto newCelebracao(@RequestBody CelebracaoDto dto) {
         return celebracaoService.salvar(dto);
     }
 
-    @PutMapping("edit/{id}")
+    @PutMapping("e/{id}")
     public CelebracaoDto editarCelebracao(@PathVariable("id") UUID id, @RequestBody CelebracaoDto dto) {
         return celebracaoService.atualizar(id, dto);
     }
 
-    @DeleteMapping("del/{id}")
+    @DeleteMapping("r/{id}")
     public void deletarCelebracao(@PathVariable("id") UUID id) {
         celebracaoService.deletar(id);
     }

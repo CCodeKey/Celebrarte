@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("user")
+@RequestMapping("u")
 public class UsuarioController {
     private UsuarioService userService;
 
@@ -22,17 +22,17 @@ public class UsuarioController {
         return userService.listar();
     }
 
-    @GetMapping("find/{id}")
+    @GetMapping("f/{id}")
     public Usuario buscarUsuario(@PathVariable("id") UUID id) {
         return userService.buscar(id);
     }
 
-    @PostMapping("new")
+    @PostMapping("n")
     public void newUsuario(@RequestBody UsuarioDto dto) {
         userService.salvar(dto);
     }
 
-    @DeleteMapping("del/{id}")
+    @DeleteMapping("r/{id}")
     public void deletarUsuario(@PathVariable("id") UUID id) {
         userService.deletar(id);
     }
