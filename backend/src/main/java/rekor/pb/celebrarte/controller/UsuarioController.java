@@ -32,6 +32,11 @@ public class UsuarioController {
         userService.salvar(dto);
     }
 
+    @PutMapping("e/{id}")
+    public Usuario editarUsuario(@PathVariable("id") UUID id, @RequestBody UsuarioDto dto) {
+        return userService.atualizar(id, dto);
+    }
+
     @DeleteMapping("r/{id}")
     public void deletarUsuario(@PathVariable("id") UUID id) {
         userService.deletar(id);

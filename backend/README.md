@@ -24,7 +24,10 @@ Cada segmento das rotas usa só a primeira letra do que representa:
 | GET | `/u` | Lista os usuários |
 | GET | `/u/f/{id}` | Busca um usuário pelo id |
 | POST | `/u/n` | Cadastra um usuário |
+| PUT | `/u/e/{id}` | Altera nome, e-mail e senha |
 | DELETE | `/u/r/{id}` | Exclui um usuário e suas celebrações |
+
+`PUT /u/e/{id}` recebe `nome` e `senhaHash`. Se `senhaHash` vier vazio ou não for enviado, a senha atual é mantida.
 
 ### Celebração (administrativo)
 
