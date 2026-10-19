@@ -1,2 +1,3 @@
 # Arquivos que serão ignorados pelo Git
 .claude/
+.vscode/
