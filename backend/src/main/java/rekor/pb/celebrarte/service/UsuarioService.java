@@ -2,6 +2,7 @@ package rekor.pb.celebrarte.service;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import rekor.pb.celebrarte.dto.UsuarioDto;
@@ -15,39 +16,59 @@ import java.util.UUID;
 @Service
 public class UsuarioService {
     private UsuarioRepository userRepository;
+    private PasswordEncoder passwordEncoder;
 
-    public UsuarioService(UsuarioRepository userRepository) {
+    public UsuarioService(UsuarioRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
-    public List<Usuario> listar(){
-        return userRepository.findAll();
+    public List<UsuarioDto> listar(){
+        return userRepository.findAll()
+                .stream()
+                .map(this::toDto)
+                .toList();
     }
 
-    public Usuario buscar(UUID id){
-        return userRepository.findById(id).orElse(null);
+    public UsuarioDto buscar(UUID id){
+        return toDto(buscarEntidade(id));
     }
 
     public void salvar(UsuarioDto dto){
         Usuario usuario = new Usuario();
         BeanUtils.copyProperties(dto, usuario);
+        // Só o hash da senha é salvo no banco
+        usuario.setSenhaHash(passwordEncoder.encode(dto.getSenha()));
         usuario.setCreatedAt(LocalDateTime.now());
         userRepository.save(usuario);
     }
 
-    public Usuario atualizar(UUID id, UsuarioDto dto){
-        Usuario usuario = userRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado"));
+    public UsuarioDto atualizar(UUID id, UsuarioDto dto){
+        Usuario usuario = buscarEntidade(id);
         usuario.setNome(dto.getNome());
         // A senha só é trocada quando enviada
-        if (dto.getSenhaHash() != null && !dto.getSenhaHash().isBlank()) {
-            usuario.setSenhaHash(dto.getSenhaHash());
+        if (dto.getSenha() != null && !dto.getSenha().isBlank()) {
+            usuario.setSenhaHash(passwordEncoder.encode(dto.getSenha()));
         }
         usuario.setUpdatedAt(LocalDateTime.now());
-        return userRepository.save(usuario);
+        return toDto(userRepository.save(usuario));
     }
 
     public void deletar(UUID id){
         userRepository.deleteById(id);
+    }
+
+    private Usuario buscarEntidade(UUID id){
+        return userRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado"));
+    }
+
+    // A senha fica de fora: a resposta nunca expõe o hash
+    private UsuarioDto toDto(Usuario usuario){
+        UsuarioDto dto = new UsuarioDto();
+        dto.setId(usuario.getId());
+        dto.setNome(usuario.getNome());
+        dto.setEmail(usuario.getEmail());
+        return dto;
     }
 }

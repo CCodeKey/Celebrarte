@@ -9,7 +9,7 @@ import rekor.pb.celebrarte.service.HomenagemService;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("h")
+@RequestMapping("homenagem")
 public class HomenagemController {
     private HomenagemService homenagemService;
 

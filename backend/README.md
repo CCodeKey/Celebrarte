@@ -4,43 +4,76 @@ Descrever
 
 ## Endpoints
 
-Cada segmento das rotas usa só a primeira letra do que representa:
+O primeiro segmento da rota é o nome completo do recurso: `/auth`, `/user`, `/celebracao` e `/homenagem`. Os segmentos seguintes usam só a primeira letra do que representam:
 
 | Letra | Significado |
 | ----- | ----------- |
-| `u` | usuário |
-| `c` | celebração (no início da rota) ou contribuir (em `/h/c`) |
-| `h` | homenagem |
+| `u` | usuário (em `/celebracao/u`) |
+| `c` | contribuir (em `/homenagem/c`) |
+| `h` | homenagens (em `/celebracao/{id}/h`) |
 | `f` | find (buscar) |
 | `n` | new (criar) |
 | `e` | edit (alterar) |
 | `r` | remove (excluir) |
 | `m` | mural |
 
+A exceção é o login, que fica em `/auth/login`.
+
+### Autenticação
+
+A API usa JWT. As rotas administrativas exigem o header `Authorization: Bearer <token>`; sem ele, ou com um token inválido ou expirado, a resposta é `401`. As únicas rotas abertas são o login, o cadastro (`POST /user/n`) e as rotas públicas de homenagem (`/homenagem/c/**` e `/homenagem/m/**`).
+
+| Método | Rota | Descrição |
+| ------ | ---- | --------- |
+| POST | `/auth/login` | Faz login e devolve o token |
+
+Corpo:
+
+```json
+{
+  "email": "maria@exemplo.com",
+  "senha": "minhaSenha"
+}
+```
+
+Resposta:
+
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiJ9…",
+  "tipo": "Bearer",
+  "expiraEm": "2026-10-21T18:10:09Z"
+}
+```
+
+O token é assinado com HS256 usando `JWT_SECRET` (mínimo de 32 caracteres) e vale por `JWT_EXPIRACAO_MINUTOS` (padrão: 60). O `sub` do token é o id do usuário. E-mail inexistente e senha errada devolvem a mesma resposta: `401` com a mensagem "E-mail ou senha inválidos".
+
 ### Usuário
 
 | Método | Rota | Descrição |
 | ------ | ---- | --------- |
-| GET | `/u` | Lista os usuários |
-| GET | `/u/f/{id}` | Busca um usuário pelo id |
-| POST | `/u/n` | Cadastra um usuário |
-| PUT | `/u/e/{id}` | Altera nome, e-mail e senha |
-| DELETE | `/u/r/{id}` | Exclui um usuário e suas celebrações |
+| GET | `/user` | Lista os usuários |
+| GET | `/user/f/{id}` | Busca um usuário pelo id |
+| POST | `/user/n` | Cadastra um usuário |
+| PUT | `/user/e/{id}` | Altera nome e senha |
+| DELETE | `/user/r/{id}` | Exclui um usuário e suas celebrações |
 
-`PUT /u/e/{id}` recebe `nome` e `senhaHash`. Se `senhaHash` vier vazio ou não for enviado, a senha atual é mantida.
+`POST /user/n` recebe `nome`, `email` e `senha`. `PUT /user/e/{id}` recebe `nome` e `senha`; se `senha` vier vazia ou não for enviada, a senha atual é mantida.
+
+A senha é enviada em texto puro e o servidor guarda só o hash BCrypt. Ela nunca aparece nas respostas.
 
 ### Celebração (administrativo)
 
 | Método | Rota | Descrição |
 | ------ | ---- | --------- |
-| GET | `/c/u/{usuarioId}` | Lista as celebrações de um usuário |
-| GET | `/c/f/{id}` | Detalhes de uma celebração |
-| GET | `/c/{id}/h` | Homenagens recebidas pela celebração |
-| POST | `/c/n` | Cria uma celebração e gera os links públicos |
-| PUT | `/c/e/{id}` | Altera o aniversariante e a data |
-| DELETE | `/c/r/{id}` | Exclui a celebração e suas homenagens |
+| GET | `/celebracao/u/{usuarioId}` | Lista as celebrações de um usuário |
+| GET | `/celebracao/f/{id}` | Detalhes de uma celebração |
+| GET | `/celebracao/{id}/h` | Homenagens recebidas pela celebração |
+| POST | `/celebracao/n` | Cria uma celebração e gera os links públicos |
+| PUT | `/celebracao/e/{id}` | Altera o aniversariante e a data |
+| DELETE | `/celebracao/r/{id}` | Exclui a celebração e suas homenagens |
 
-Corpo de `POST /c/n`:
+Corpo de `POST /celebracao/n`:
 
 ```json
 {
@@ -50,7 +83,7 @@ Corpo de `POST /c/n`:
 }
 ```
 
-`PUT /c/e/{id}` recebe `nomeAniversariante` e `dataCelebracao`.
+`PUT /celebracao/e/{id}` recebe `nomeAniversariante` e `dataCelebracao`.
 
 Resposta (`201 Created`):
 
@@ -72,12 +105,12 @@ O servidor gera `tokenContribuicao` e `tokenMural`, que são usados nas rotas p�
 
 | Método | Rota | Acesso | Descrição |
 | ------ | ---- | ------ | --------- |
-| GET | `/h/c/{tokenContribuicao}` | Público | Nome do aniversariante e data, para o formulário |
-| POST | `/h/c/{tokenContribuicao}` | Público | Envia uma homenagem |
-| GET | `/h/m/{tokenMural}` | Público | Mural com a celebração e todas as homenagens |
-| DELETE | `/h/r/{id}` | Administrativo | Exclui uma homenagem |
+| GET | `/homenagem/c/{tokenContribuicao}` | Público | Nome do aniversariante e data, para o formulário |
+| POST | `/homenagem/c/{tokenContribuicao}` | Público | Envia uma homenagem |
+| GET | `/homenagem/m/{tokenMural}` | Público | Mural com a celebração e todas as homenagens |
+| DELETE | `/homenagem/r/{id}` | Administrativo | Exclui uma homenagem |
 
-Corpo de `POST /h/c/{tokenContribuicao}`:
+Corpo de `POST /homenagem/c/{tokenContribuicao}`:
 
 ```json
 {
@@ -88,7 +121,7 @@ Corpo de `POST /h/c/{tokenContribuicao}`:
 
 Os dois campos são opcionais, mas a homenagem precisa ter pelo menos um deles. A mensagem tem limite de 2.000 caracteres. Por enquanto, `imagemUrl` é apenas uma URL em texto; o upload de arquivos ainda não foi implementado.
 
-Resposta de `GET /h/m/{tokenMural}`:
+Resposta de `GET /homenagem/m/{tokenMural}`:
 
 ```json
 {
@@ -110,5 +143,6 @@ Resposta de `GET /h/m/{tokenMural}`:
 | Status | Quando |
 | ------ | ------ |
 | 400 | Campos obrigatórios ausentes, homenagem sem mensagem e sem imagem, ou mensagem acima de 2.000 caracteres |
+| 401 | Rota administrativa sem token, token inválido ou expirado, ou login com e-mail ou senha inválidos |
 | 404 | Usuário, celebração, homenagem ou token não encontrado |
 | 410 | Envio de homenagem após a data de encerramento |

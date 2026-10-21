@@ -1,12 +1,17 @@
 package rekor.pb.celebrarte.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.UUID;
 
 public class UsuarioDto {
     private UUID id;
     private String nome;
     private String email;
-    private String senhaHash;
+
+    // Senha em texto puro: recebida no corpo da requisição, mas nunca devolvida nas respostas
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    private String senha;
 
     public UsuarioDto(){}
 
@@ -34,11 +39,11 @@ public class UsuarioDto {
         this.email = email;
     }
 
-    public String getSenhaHash() {
-        return senhaHash;
+    public String getSenha() {
+        return senha;
     }
 
-    public void setSenhaHash(String senhaHash) {
-        this.senhaHash = senhaHash;
+    public void setSenha(String senha) {
+        this.senha = senha;
     }
 }

@@ -8,10 +8,11 @@ celebrarte/
 ├── README.md
 │
 ├── docs/
-│   ├── 01-arquitetura.md
+│   ├── 01-escopo.md
 │   ├── 02-requisitos.md
 │   ├── 03-regras-de-negocio.md
-│   └── 04-modelo-de-dados.drawio
+│   ├── 04-modelo-de-dados.drawio
+│   └── 05-arquitetura.md
 │
 ├── frontend/
 │   ├── src/

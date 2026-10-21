@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("c")
+@RequestMapping("celebracao")
 public class CelebracaoController {
     private CelebracaoService celebracaoService;
     private HomenagemService homenagemService;
