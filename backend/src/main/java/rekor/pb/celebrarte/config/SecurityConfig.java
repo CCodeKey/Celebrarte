@@ -18,9 +18,14 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
+import org.springframework.security.oauth2.server.resource.web.BearerTokenResolver;
+import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
+import org.springframework.security.web.util.matcher.OrRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 
 import javax.crypto.SecretKey;
@@ -30,6 +35,19 @@ import java.nio.charset.StandardCharsets;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+    private static final PathPatternRequestMatcher.Builder ROTA = PathPatternRequestMatcher.withDefaults();
+
+    // Rotas abertas, sem login. Para incluir uma nova, basta adicioná-la aqui.
+    private static final RequestMatcher ROTAS_PUBLICAS = new OrRequestMatcher(
+            // Login e cadastro
+            ROTA.matcher(HttpMethod.POST, "/auth/login"),
+            ROTA.matcher(HttpMethod.POST, "/user/n"),
+            // Formulário de contribuição e mural (acessados pelo token do link)
+            ROTA.matcher("/homenagem/c/**"),
+            ROTA.matcher("/mural/**"),
+            // Deixa o corpo das respostas de erro (400, 404...) visível
+            ROTA.matcher("/error"));
+
     private SecretKey chaveJwt;
 
     public SecurityConfig(@Value("${jwt.secret}") String segredo) {
@@ -63,6 +81,14 @@ public class SecurityConfig {
         return NimbusJwtDecoder.withSecretKey(chaveJwt).macAlgorithm(MacAlgorithm.HS256).build();
     }
 
+    // Nas rotas públicas o header Authorization é ignorado: um token vencido ou inválido
+    // guardado pelo cliente não pode impedir alguém de abrir o mural ou fazer login
+    @Bean
+    public BearerTokenResolver bearerTokenResolver() {
+        DefaultBearerTokenResolver padrao = new DefaultBearerTokenResolver();
+        return request -> ROTAS_PUBLICAS.matches(request) ? null : padrao.resolve(request);
+    }
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http,
             @Qualifier("handlerExceptionResolver") HandlerExceptionResolver resolver) throws Exception {
@@ -77,12 +103,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // Login e cadastro
-                        .requestMatchers(HttpMethod.POST, "/auth/login", "/user/n").permitAll()
-                        // Rotas públicas de contribuição e mural (acessadas pelo token do link)
-                        .requestMatchers("/homenagem/c/**", "/homenagem/m/**").permitAll()
-                        // Deixa o corpo das respostas de erro (400, 404...) visível
-                        .requestMatchers("/error").permitAll()
+                        .requestMatchers(ROTAS_PUBLICAS).permitAll()
                         // RN-02: o resto exige o header "Authorization: Bearer <token>"
                         .anyRequest().authenticated())
                 .exceptionHandling(ex -> ex

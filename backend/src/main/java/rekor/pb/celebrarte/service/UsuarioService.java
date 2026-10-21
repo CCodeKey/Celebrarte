@@ -10,7 +10,6 @@ import rekor.pb.celebrarte.entity.Usuario;
 import rekor.pb.celebrarte.repository.UsuarioRepository;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -23,24 +22,9 @@ public class UsuarioService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public List<UsuarioDto> listar(){
-        return userRepository.findAll()
-                .stream()
-                .map(this::toDto)
-                .toList();
-    }
-
+    // RN-03: buscar, atualizar e deletar recebem sempre o id do usuário logado (vindo do token)
     public UsuarioDto buscar(UUID id){
         return toDto(buscarEntidade(id));
-    }
-
-    public UsuarioDto buscarPorEmail(String email){
-        if (email == null || email.isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "E-mail é obrigatório");
-        }
-        return userRepository.findByEmail(email.trim())
-                .map(this::toDto)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado"));
     }
 
     public UsuarioDto salvar(UsuarioDto dto){

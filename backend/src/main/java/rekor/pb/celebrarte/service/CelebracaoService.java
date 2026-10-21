@@ -34,18 +34,15 @@ public class CelebracaoService {
                 .toList();
     }
 
-    public CelebracaoDto buscar(UUID id){
-        return toDto(buscarEntidade(id));
+    public CelebracaoDto buscar(UUID id, UUID usuarioId){
+        return toDto(buscarEntidade(id, usuarioId));
     }
 
-    public CelebracaoDto salvar(CelebracaoDto dto){
+    public CelebracaoDto salvar(CelebracaoDto dto, UUID usuarioId){
         validar(dto);
 
-        // RN-01 / RN-06: toda celebração possui um usuário responsável
-        if (dto.getUsuarioId() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Usuário responsável é obrigatório");
-        }
-        Usuario usuario = usuarioRepository.findById(dto.getUsuarioId())
+        // RN-01 / RN-06: o responsável é sempre o usuário logado; o usuarioId do corpo é ignorado
+        Usuario usuario = usuarioRepository.findById(usuarioId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado"));
 
         Celebracao celebracao = new Celebracao();
@@ -62,10 +59,10 @@ public class CelebracaoService {
     }
 
     // RN-31: o responsável pode alterar os dados da celebração
-    public CelebracaoDto atualizar(UUID id, CelebracaoDto dto){
+    public CelebracaoDto atualizar(UUID id, CelebracaoDto dto, UUID usuarioId){
         validar(dto);
 
-        Celebracao celebracao = buscarEntidade(id);
+        Celebracao celebracao = buscarEntidade(id, usuarioId);
         celebracao.setNomeAniversariante(dto.getNomeAniversariante().trim());
         celebracao.setDataCelebracao(dto.getDataCelebracao());
         celebracao.setUpdatedAt(LocalDateTime.now());
@@ -73,12 +70,14 @@ public class CelebracaoService {
     }
 
     // RN-32: o responsável pode excluir a celebração (homenagens são removidas em cascata)
-    public void deletar(UUID id){
-        celebracaoRepository.delete(buscarEntidade(id));
+    public void deletar(UUID id, UUID usuarioId){
+        celebracaoRepository.delete(buscarEntidade(id, usuarioId));
     }
 
-    Celebracao buscarEntidade(UUID id){
-        return celebracaoRepository.findById(id)
+    // RN-03: só encontra a celebração se ela pertencer ao usuário. A de outra pessoa
+    // responde 404, igual a uma inexistente, para não revelar que ela existe.
+    Celebracao buscarEntidade(UUID id, UUID usuarioId){
+        return celebracaoRepository.findByIdAndUsuarioId(id, usuarioId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Celebração não encontrada"));
     }
 

@@ -3,6 +3,7 @@ package rekor.pb.celebrarte.controller;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import rekor.pb.celebrarte.config.UsuarioLogado;
 import rekor.pb.celebrarte.dto.HomenagemDto;
 import rekor.pb.celebrarte.dto.MuralDto;
 import rekor.pb.celebrarte.service.HomenagemService;
@@ -28,14 +29,9 @@ public class HomenagemController {
         return ResponseEntity.status(HttpStatus.CREATED).body(homenagemService.enviar(token, dto));
     }
 
-    @GetMapping("m/{token}")
-    public ResponseEntity<MuralDto> buscarMural(@PathVariable("token") String token) {
-        return ResponseEntity.ok(homenagemService.buscarMural(token));
-    }
-
     @DeleteMapping("r/{id}")
-    public ResponseEntity<Void> deletarHomenagem(@PathVariable("id") UUID id) {
-        homenagemService.deletar(id);
+    public ResponseEntity<Void> deletarHomenagem(@PathVariable("id") UUID id, @UsuarioLogado UUID usuarioId) {
+        homenagemService.deletar(id, usuarioId);
         return ResponseEntity.noContent().build();
     }
 }

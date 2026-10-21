@@ -11,6 +11,8 @@ import java.util.UUID;
 @Repository
 public interface CelebracaoRepository extends JpaRepository<Celebracao, UUID> {
     List<Celebracao> findByUsuarioIdOrderByDataCelebracaoDesc(UUID usuarioId);
+    Optional<Celebracao> findByIdAndUsuarioId(UUID id, UUID usuarioId);
+    boolean existsByIdAndUsuarioId(UUID id, UUID usuarioId);
 
     Optional<Celebracao> findByTokenContribuicao(String tokenContribuicao);
 

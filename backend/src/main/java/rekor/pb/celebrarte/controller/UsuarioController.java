@@ -3,12 +3,13 @@ package rekor.pb.celebrarte.controller;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import rekor.pb.celebrarte.config.UsuarioLogado;
 import rekor.pb.celebrarte.dto.UsuarioDto;
 import rekor.pb.celebrarte.service.UsuarioService;
 
-import java.util.List;
 import java.util.UUID;
 
+// Fora o cadastro, todas as rotas atuam só sobre o usuário logado (RN-03)
 @RestController
 @RequestMapping("user")
 public class UsuarioController {
@@ -18,19 +19,9 @@ public class UsuarioController {
         this.userService = userService;
     }
 
-    @GetMapping
-    public ResponseEntity<List<UsuarioDto>> listarUsuarios() {
-        return ResponseEntity.ok(userService.listar());
-    }
-
-    @GetMapping("f/{id}")
-    public ResponseEntity<UsuarioDto> buscarUsuario(@PathVariable("id") UUID id) {
-        return ResponseEntity.ok(userService.buscar(id));
-    }
-
-    @GetMapping("f")
-    public ResponseEntity<UsuarioDto> buscarUsuarioPorEmail(@RequestParam("email") String email) {
-        return ResponseEntity.ok(userService.buscarPorEmail(email));
+    @GetMapping("me")
+    public ResponseEntity<UsuarioDto> buscarUsuario(@UsuarioLogado UUID usuarioId) {
+        return ResponseEntity.ok(userService.buscar(usuarioId));
     }
 
     @PostMapping("n")
@@ -38,14 +29,14 @@ public class UsuarioController {
         return ResponseEntity.status(HttpStatus.CREATED).body(userService.salvar(dto));
     }
 
-    @PutMapping("e/{id}")
-    public ResponseEntity<UsuarioDto> editarUsuario(@PathVariable("id") UUID id, @RequestBody UsuarioDto dto) {
-        return ResponseEntity.ok(userService.atualizar(id, dto));
+    @PutMapping("e")
+    public ResponseEntity<UsuarioDto> editarUsuario(@UsuarioLogado UUID usuarioId, @RequestBody UsuarioDto dto) {
+        return ResponseEntity.ok(userService.atualizar(usuarioId, dto));
     }
 
-    @DeleteMapping("r/{id}")
-    public ResponseEntity<Void> deletarUsuario(@PathVariable("id") UUID id) {
-        userService.deletar(id);
+    @DeleteMapping("r")
+    public ResponseEntity<Void> deletarUsuario(@UsuarioLogado UUID usuarioId) {
+        userService.deletar(usuarioId);
         return ResponseEntity.noContent().build();
     }
 }

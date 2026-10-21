@@ -27,8 +27,9 @@ public class HomenagemService {
     }
 
     // RF-11: homenagens recebidas, visão administrativa
-    public List<HomenagemDto> listarPorCelebracao(UUID celebracaoId){
-        if (!celebracaoRepository.existsById(celebracaoId)) {
+    public List<HomenagemDto> listarPorCelebracao(UUID celebracaoId, UUID usuarioId){
+        // RN-03: só o responsável pela celebração vê a lista administrativa
+        if (!celebracaoRepository.existsByIdAndUsuarioId(celebracaoId, usuarioId)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Celebração não encontrada");
         }
         return listarDtos(celebracaoId);
@@ -86,8 +87,9 @@ public class HomenagemService {
     }
 
     // RN-30: o responsável pode excluir uma homenagem
-    public void deletar(UUID id){
-        if (!homenagemRepository.existsById(id)) {
+    public void deletar(UUID id, UUID usuarioId){
+        // RN-03: só exclui homenagens de celebrações do próprio usuário
+        if (!homenagemRepository.existsByIdAndCelebracaoUsuarioId(id, usuarioId)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Homenagem não encontrada");
         }
         homenagemRepository.deleteById(id);

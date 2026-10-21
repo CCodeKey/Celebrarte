@@ -10,4 +10,5 @@ import java.util.UUID;
 @Repository
 public interface HomenagemRepository extends JpaRepository<Homenagem, UUID> {
     List<Homenagem> findByCelebracaoIdOrderByCreatedAtAsc(UUID celebracaoId);
+    boolean existsByIdAndCelebracaoUsuarioId(UUID id, UUID usuarioId);
 }
