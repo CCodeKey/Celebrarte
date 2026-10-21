@@ -1,5 +1,6 @@
 package rekor.pb.celebrarte.controller;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import rekor.pb.celebrarte.dto.LoginDto;
 import rekor.pb.celebrarte.dto.TokenDto;
@@ -15,7 +16,7 @@ public class AuthController {
     }
 
     @PostMapping("login")
-    public TokenDto login(@RequestBody LoginDto dto) {
-        return authService.login(dto);
+    public ResponseEntity<TokenDto> login(@RequestBody LoginDto dto) {
+        return ResponseEntity.ok(authService.login(dto));
     }
 }

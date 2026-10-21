@@ -34,18 +34,42 @@ public class UsuarioService {
         return toDto(buscarEntidade(id));
     }
 
-    public void salvar(UsuarioDto dto){
+    public UsuarioDto buscarPorEmail(String email){
+        if (email == null || email.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "E-mail é obrigatório");
+        }
+        return userRepository.findByEmail(email.trim())
+                .map(this::toDto)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado"));
+    }
+
+    public UsuarioDto salvar(UsuarioDto dto){
+        validarNome(dto.getNome());
+        if (dto.getEmail() == null || dto.getEmail().isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "E-mail é obrigatório");
+        }
+        if (dto.getSenha() == null || dto.getSenha().isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Senha é obrigatória");
+        }
+        String email = dto.getEmail().trim();
+        if (userRepository.findByEmail(email).isPresent()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "E-mail já cadastrado");
+        }
+
         Usuario usuario = new Usuario();
         BeanUtils.copyProperties(dto, usuario);
+        usuario.setNome(dto.getNome().trim());
+        usuario.setEmail(email);
         // Só o hash da senha é salvo no banco
         usuario.setSenhaHash(passwordEncoder.encode(dto.getSenha()));
         usuario.setCreatedAt(LocalDateTime.now());
-        userRepository.save(usuario);
+        return toDto(userRepository.save(usuario));
     }
 
     public UsuarioDto atualizar(UUID id, UsuarioDto dto){
+        validarNome(dto.getNome());
         Usuario usuario = buscarEntidade(id);
-        usuario.setNome(dto.getNome());
+        usuario.setNome(dto.getNome().trim());
         // A senha só é trocada quando enviada
         if (dto.getSenha() != null && !dto.getSenha().isBlank()) {
             usuario.setSenhaHash(passwordEncoder.encode(dto.getSenha()));
@@ -55,7 +79,16 @@ public class UsuarioService {
     }
 
     public void deletar(UUID id){
-        userRepository.deleteById(id);
+        userRepository.delete(buscarEntidade(id));
+    }
+
+    private void validarNome(String nome){
+        if (nome == null || nome.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nome é obrigatório");
+        }
+        if (nome.trim().length() > 255) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nome deve ter no máximo 255 caracteres");
+        }
     }
 
     private Usuario buscarEntidade(UUID id){

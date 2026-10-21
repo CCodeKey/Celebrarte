@@ -1,5 +1,7 @@
 package rekor.pb.celebrarte.controller;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import rekor.pb.celebrarte.dto.UsuarioDto;
 import rekor.pb.celebrarte.service.UsuarioService;
@@ -17,27 +19,33 @@ public class UsuarioController {
     }
 
     @GetMapping
-    public List<UsuarioDto> listarUsuarios() {
-        return userService.listar();
+    public ResponseEntity<List<UsuarioDto>> listarUsuarios() {
+        return ResponseEntity.ok(userService.listar());
     }
 
     @GetMapping("f/{id}")
-    public UsuarioDto buscarUsuario(@PathVariable("id") UUID id) {
-        return userService.buscar(id);
+    public ResponseEntity<UsuarioDto> buscarUsuario(@PathVariable("id") UUID id) {
+        return ResponseEntity.ok(userService.buscar(id));
+    }
+
+    @GetMapping("f")
+    public ResponseEntity<UsuarioDto> buscarUsuarioPorEmail(@RequestParam("email") String email) {
+        return ResponseEntity.ok(userService.buscarPorEmail(email));
     }
 
     @PostMapping("n")
-    public void newUsuario(@RequestBody UsuarioDto dto) {
-        userService.salvar(dto);
+    public ResponseEntity<UsuarioDto> newUsuario(@RequestBody UsuarioDto dto) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(userService.salvar(dto));
     }
 
     @PutMapping("e/{id}")
-    public UsuarioDto editarUsuario(@PathVariable("id") UUID id, @RequestBody UsuarioDto dto) {
-        return userService.atualizar(id, dto);
+    public ResponseEntity<UsuarioDto> editarUsuario(@PathVariable("id") UUID id, @RequestBody UsuarioDto dto) {
+        return ResponseEntity.ok(userService.atualizar(id, dto));
     }
 
     @DeleteMapping("r/{id}")
-    public void deletarUsuario(@PathVariable("id") UUID id) {
+    public ResponseEntity<Void> deletarUsuario(@PathVariable("id") UUID id) {
         userService.deletar(id);
+        return ResponseEntity.noContent().build();
     }
 }

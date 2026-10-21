@@ -1,6 +1,7 @@
 package rekor.pb.celebrarte.controller;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import rekor.pb.celebrarte.dto.HomenagemDto;
 import rekor.pb.celebrarte.dto.MuralDto;
@@ -18,22 +19,23 @@ public class HomenagemController {
     }
 
     @GetMapping("c/{token}")
-    public MuralDto buscarFormulario(@PathVariable("token") String token) {
-        return homenagemService.buscarFormulario(token);
+    public ResponseEntity<MuralDto> buscarFormulario(@PathVariable("token") String token) {
+        return ResponseEntity.ok(homenagemService.buscarFormulario(token));
     }
 
     @PostMapping("c/{token}")
-    @ResponseStatus(HttpStatus.CREATED)
-    public HomenagemDto enviarHomenagem(@PathVariable("token") String token, @RequestBody HomenagemDto dto) {
-        return homenagemService.enviar(token, dto);
+    public ResponseEntity<HomenagemDto> enviarHomenagem(@PathVariable("token") String token, @RequestBody HomenagemDto dto) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(homenagemService.enviar(token, dto));
     }
+
     @GetMapping("m/{token}")
-    public MuralDto buscarMural(@PathVariable("token") String token) {
-        return homenagemService.buscarMural(token);
+    public ResponseEntity<MuralDto> buscarMural(@PathVariable("token") String token) {
+        return ResponseEntity.ok(homenagemService.buscarMural(token));
     }
 
     @DeleteMapping("r/{id}")
-    public void deletarHomenagem(@PathVariable("id") UUID id) {
+    public ResponseEntity<Void> deletarHomenagem(@PathVariable("id") UUID id) {
         homenagemService.deletar(id);
+        return ResponseEntity.noContent().build();
     }
 }

@@ -1,6 +1,7 @@
 package rekor.pb.celebrarte.controller;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import rekor.pb.celebrarte.dto.CelebracaoDto;
 import rekor.pb.celebrarte.dto.HomenagemDto;
@@ -22,33 +23,33 @@ public class CelebracaoController {
     }
 
     @GetMapping("u/{usuarioId}")
-    public List<CelebracaoDto> listarCelebracoes(@PathVariable("usuarioId") UUID usuarioId) {
-        return celebracaoService.listarPorUsuario(usuarioId);
+    public ResponseEntity<List<CelebracaoDto>> listarCelebracoes(@PathVariable("usuarioId") UUID usuarioId) {
+        return ResponseEntity.ok(celebracaoService.listarPorUsuario(usuarioId));
     }
 
     @GetMapping("f/{id}")
-    public CelebracaoDto buscarCelebracao(@PathVariable("id") UUID id) {
-        return celebracaoService.buscar(id);
+    public ResponseEntity<CelebracaoDto> buscarCelebracao(@PathVariable("id") UUID id) {
+        return ResponseEntity.ok(celebracaoService.buscar(id));
     }
 
     @GetMapping("{id}/h")
-    public List<HomenagemDto> listarHomenagens(@PathVariable("id") UUID id) {
-        return homenagemService.listarPorCelebracao(id);
+    public ResponseEntity<List<HomenagemDto>> listarHomenagens(@PathVariable("id") UUID id) {
+        return ResponseEntity.ok(homenagemService.listarPorCelebracao(id));
     }
 
     @PostMapping("n")
-    @ResponseStatus(HttpStatus.CREATED)
-    public CelebracaoDto newCelebracao(@RequestBody CelebracaoDto dto) {
-        return celebracaoService.salvar(dto);
+    public ResponseEntity<CelebracaoDto> newCelebracao(@RequestBody CelebracaoDto dto) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(celebracaoService.salvar(dto));
     }
 
     @PutMapping("e/{id}")
-    public CelebracaoDto editarCelebracao(@PathVariable("id") UUID id, @RequestBody CelebracaoDto dto) {
-        return celebracaoService.atualizar(id, dto);
+    public ResponseEntity<CelebracaoDto> editarCelebracao(@PathVariable("id") UUID id, @RequestBody CelebracaoDto dto) {
+        return ResponseEntity.ok(celebracaoService.atualizar(id, dto));
     }
 
     @DeleteMapping("r/{id}")
-    public void deletarCelebracao(@PathVariable("id") UUID id) {
+    public ResponseEntity<Void> deletarCelebracao(@PathVariable("id") UUID id) {
         celebracaoService.deletar(id);
+        return ResponseEntity.noContent().build();
     }
 }

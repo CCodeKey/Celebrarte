@@ -54,6 +54,7 @@ O token é assinado com HS256 usando `JWT_SECRET` (mínimo de 32 caracteres) e v
 | ------ | ---- | --------- |
 | GET | `/user` | Lista os usuários |
 | GET | `/user/f/{id}` | Busca um usuário pelo id |
+| GET | `/user/f?email={email}` | Busca um usuário pelo e-mail |
 | POST | `/user/n` | Cadastra um usuário |
 | PUT | `/user/e/{id}` | Altera nome e senha |
 | DELETE | `/user/r/{id}` | Exclui um usuário e suas celebrações |
@@ -138,11 +139,36 @@ Resposta de `GET /homenagem/m/{tokenMural}`:
 }
 ```
 
-## Erros
+## Respostas de sucesso
 
 | Status | Quando |
 | ------ | ------ |
-| 400 | Campos obrigatórios ausentes, homenagem sem mensagem e sem imagem, ou mensagem acima de 2.000 caracteres |
+| 200 | Buscas, listagens, alterações e login |
+| 201 | Criação (`POST /user/n`, `POST /celebracao/n` e `POST /homenagem/c/{tokenContribuicao}`), com o registro criado no corpo |
+| 204 | Exclusão, sem corpo |
+
+## Erros
+
+Todo erro devolve o mesmo formato, sem stack trace:
+
+```json
+{
+  "timestamp": "2026-10-21T18:23:25.714Z",
+  "status": 404,
+  "erro": "Not Found",
+  "mensagem": "Celebração não encontrada",
+  "path": "/celebracao/f/00000000-0000-0000-0000-000000000000"
+}
+```
+
+| Status | Quando |
+| ------ | ------ |
+| 400 | Campos obrigatórios ausentes, JSON malformado, id que não é UUID, parâmetro obrigatório ausente, homenagem sem mensagem e sem imagem, ou mensagem acima de 2.000 caracteres |
 | 401 | Rota administrativa sem token, token inválido ou expirado, ou login com e-mail ou senha inválidos |
-| 404 | Usuário, celebração, homenagem ou token não encontrado |
+| 403 | Acesso negado |
+| 404 | Usuário, celebração, homenagem, token ou rota não encontrado |
+| 405 | Método HTTP não suportado na rota (ex.: `GET /auth/login`) |
+| 409 | E-mail já cadastrado |
 | 410 | Envio de homenagem após a data de encerramento |
+| 415 | Corpo enviado sem `Content-Type: application/json` |
+| 500 | Erro inesperado; o detalhe fica só no log do servidor |
