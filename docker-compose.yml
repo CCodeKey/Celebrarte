@@ -1,0 +1,18 @@
+services:
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    environment:
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:?defina SPRING_DATASOURCE_URL no .env}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:?defina SPRING_DATASOURCE_USERNAME no .env}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:?defina SPRING_DATASOURCE_PASSWORD no .env}
+      JWT_SECRET: ${JWT_SECRET:?defina JWT_SECRET no .env (mínimo de 32 caracteres)}
+      JWT_EXPIRACAO_MINUTOS: ${JWT_EXPIRACAO_MINUTOS:-60}
+
+  frontend:
+    build: ./frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "${FRONTEND_PORT:-80}:80"
