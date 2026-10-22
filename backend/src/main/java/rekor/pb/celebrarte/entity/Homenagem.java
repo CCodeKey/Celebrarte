@@ -25,6 +25,10 @@ public class Homenagem {
     @Column(name = "imagem_url", columnDefinition = "TEXT")
     private String imagemUrl;
 
+    // Tipo (ex.: image/png) da imagem enviada por upload; nulo quando não há arquivo
+    @Column(name = "imagem_tipo", length = 20)
+    private String imagemTipo;
+
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
@@ -58,6 +62,14 @@ public class Homenagem {
         this.imagemUrl = imagemUrl;
     }
 
+    public String getImagemTipo() {
+        return imagemTipo;
+    }
+
+    public void setImagemTipo(String imagemTipo) {
+        this.imagemTipo = imagemTipo;
+    }
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
@@ -72,6 +84,7 @@ public class Homenagem {
                 "id=" + id +
                 ", mensagem='" + mensagem + '\'' +
                 ", imagemUrl='" + imagemUrl + '\'' +
+                ", imagemTipo='" + imagemTipo + '\'' +
                 ", createdAt=" + createdAt +
                 '}';
     }

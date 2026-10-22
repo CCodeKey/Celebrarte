@@ -29,11 +29,6 @@ export default function Mural() {
       <header className="mural-titulo">
         <p className="sobretitulo">{formatarData(mural.dataCelebracao)}</p>
         <h1>Feliz aniversário, {mural.nomeAniversariante}!</h1>
-        <p className="texto-suave">
-          {mural.homenagens.length === 1
-            ? '1 homenagem de quem gosta de você'
-            : `${mural.homenagens.length} homenagens de quem gosta de você`}
-        </p>
       </header>
 
       {mural.homenagens.length === 0 ? (

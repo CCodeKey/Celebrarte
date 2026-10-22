@@ -45,6 +45,8 @@ public class SecurityConfig {
             // Formulário de contribuição e mural (acessados pelo token do link)
             ROTA.matcher("/homenagem/c/**"),
             ROTA.matcher("/mural/**"),
+            // Arquivos das imagens enviadas por upload, exibidos no mural
+            ROTA.matcher(HttpMethod.GET, "/homenagem/i/**"),
             // Deixa o corpo das respostas de erro (400, 404...) visível
             ROTA.matcher("/error"));
 

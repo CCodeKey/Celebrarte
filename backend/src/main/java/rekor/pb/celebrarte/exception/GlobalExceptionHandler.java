@@ -17,6 +17,8 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.MultipartException;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 import rekor.pb.celebrarte.dto.ErroDto;
@@ -56,7 +58,20 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
     public ResponseEntity<ErroDto> tratarMediaType(HttpMediaTypeNotSupportedException e, HttpServletRequest request) {
-        return responder(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "Envie o corpo como JSON (Content-Type: application/json)", request);
+        return responder(HttpStatus.UNSUPPORTED_MEDIA_TYPE,
+                "Envie o corpo como JSON (application/json) ou, no envio de homenagem com imagem, como multipart/form-data", request);
+    }
+
+    // RNF-06: arquivo acima de spring.servlet.multipart.max-file-size
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ErroDto> tratarUploadGrande(MaxUploadSizeExceededException e, HttpServletRequest request) {
+        return responder(HttpStatus.CONTENT_TOO_LARGE, "A imagem deve ter no máximo 5 MB", request);
+    }
+
+    // Corpo multipart malformado
+    @ExceptionHandler(MultipartException.class)
+    public ResponseEntity<ErroDto> tratarMultipart(MultipartException e, HttpServletRequest request) {
+        return responder(HttpStatus.BAD_REQUEST, "Não foi possível ler o arquivo enviado", request);
     }
 
     @ExceptionHandler(NoResourceFoundException.class)

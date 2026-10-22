@@ -1,34 +1,28 @@
 import { useCallback, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { useCarregar } from '../hooks/useCarregar'
 import { buscarFormulario, enviarHomenagem } from '../services/homenagens'
 import { envioEncerrado, formatarData } from '../utils/datas'
+import { urlValida } from '../utils/links'
 import Campo from '../components/Campo'
 import Alerta from '../components/Alerta'
 import Carregando from '../components/Carregando'
+import SeletorImagem from '../components/SeletorImagem'
 
 const LIMITE_MENSAGEM = 2000
-
-function urlValida(valor) {
-  try {
-    const url = new URL(valor)
-    return url.protocol === 'http:' || url.protocol === 'https:'
-  } catch {
-    return false
-  }
-}
+const IMAGEM_VAZIA = { modo: 'arquivo', arquivo: null, url: '' }
 
 // Formulário público, acessado pelo link de contribuição sem login (RF-12, RN-17)
 export default function Contribuir() {
   const { token } = useParams()
   const { dados: celebracao, erro, carregando } = useCarregar(useCallback(() => buscarFormulario(token), [token]))
+  const [imagem, setImagem] = useState(IMAGEM_VAZIA)
   const [mensagem, setMensagem] = useState('')
-  const [imagemUrl, setImagemUrl] = useState('')
-  const [imagemQuebrada, setImagemQuebrada] = useState(false)
   const [erros, setErros] = useState({})
   const [erroApi, setErroApi] = useState(null)
   const [enviando, setEnviando] = useState(false)
-  const [enviada, setEnviada] = useState(false)
+  // Resposta do envio (com o tokenMural) ou null enquanto não enviou
+  const [enviada, setEnviada] = useState(null)
   const [encerradaNoEnvio, setEncerradaNoEnvio] = useState(false)
 
   if (carregando) return <Carregando />
@@ -56,32 +50,41 @@ export default function Contribuir() {
     )
   }
 
-  // RF-16: confirmação de envio
+  // RF-16: confirmação de envio. O token do mural só chega na resposta de um envio válido
   if (enviada) {
     return (
       <section className="cartao cartao-medio texto-centro">
         <div className="icone-sucesso" aria-hidden="true">✓</div>
         <h1>Homenagem enviada!</h1>
         <p className="texto-suave">Obrigado! Sua homenagem para {nomeAniversariante} já está no mural.</p>
-        <button type="button" className="botao botao-secundario" onClick={() => {
-          setMensagem('')
-          setImagemUrl('')
-          setEnviada(false)
-        }}>
-          Enviar outra homenagem
-        </button>
+        <div className="acoes acoes-centro">
+          {enviada.tokenMural && (
+            <Link to={`/m/${enviada.tokenMural}`} className="botao botao-primario">Ver o mural</Link>
+          )}
+          <button type="button" className="botao botao-secundario" onClick={() => {
+            setMensagem('')
+            setImagem(IMAGEM_VAZIA)
+            setEnviada(null)
+          }}>
+            Enviar outra homenagem
+          </button>
+        </div>
       </section>
     )
   }
 
+  // Só a opção escolhida é enviada: uma imagem por homenagem (RN-36)
+  const arquivo = imagem.modo === 'arquivo' ? imagem.arquivo : null
+  const imagemUrl = imagem.modo === 'link' ? imagem.url.trim() : ''
+
   function validar() {
     const novos = {}
-    const temMensagem = mensagem.trim().length > 0
-    const temImagem = imagemUrl.trim().length > 0
     // RN-11: pelo menos uma mensagem ou uma imagem
-    if (!temMensagem && !temImagem) novos.geral = 'Escreva uma mensagem, adicione uma imagem ou os dois.'
+    if (!mensagem.trim() && !arquivo && !imagemUrl) {
+      novos.geral = 'Adicione uma imagem, escreva uma mensagem ou os dois.'
+    }
     if (mensagem.trim().length > LIMITE_MENSAGEM) novos.mensagem = `A mensagem deve ter no máximo ${LIMITE_MENSAGEM} caracteres.`
-    if (temImagem && !urlValida(imagemUrl.trim())) novos.imagemUrl = 'Informe um link de imagem começando com http:// ou https://.'
+    if (imagemUrl && !urlValida(imagemUrl)) novos.imagem = 'Informe um link de imagem começando com http:// ou https://.'
     setErros(novos)
     return Object.keys(novos).length === 0
   }
@@ -92,11 +95,7 @@ export default function Contribuir() {
     setEnviando(true)
     setErroApi(null)
     try {
-      await enviarHomenagem(token, {
-        mensagem: mensagem.trim() || null,
-        imagemUrl: imagemUrl.trim() || null,
-      })
-      setEnviada(true)
+      setEnviada(await enviarHomenagem(token, { mensagem: mensagem.trim(), imagem: arquivo, imagemUrl }))
     } catch (err) {
       if (err.status === 410) setEncerradaNoEnvio(true)
       else setErroApi(err.message)
@@ -104,8 +103,6 @@ export default function Contribuir() {
       setEnviando(false)
     }
   }
-
-  const mostrarPreview = urlValida(imagemUrl.trim()) && !imagemQuebrada
 
   return (
     <section className="cartao cartao-medio">
@@ -115,8 +112,14 @@ export default function Contribuir() {
 
       <form className="formulario" onSubmit={enviar} noValidate>
         <Alerta tipo="erro">{erroApi ?? erros.geral}</Alerta>
+        <SeletorImagem
+          valor={imagem}
+          onChange={setImagem}
+          erro={erros.imagem}
+          onErro={(texto) => setErros((atuais) => ({ ...atuais, imagem: texto }))}
+        />
         <Campo
-          label="Mensagem"
+          label="Mensagem (opcional)"
           multilinha
           rows={6}
           value={mensagem}
@@ -126,24 +129,6 @@ export default function Contribuir() {
           placeholder={`Escreva algo especial para ${nomeAniversariante}…`}
           contador={`${mensagem.length}/${LIMITE_MENSAGEM}`}
         />
-        <Campo
-          label="Link de uma imagem (opcional)"
-          type="url"
-          inputMode="url"
-          value={imagemUrl}
-          onChange={(e) => {
-            setImagemUrl(e.target.value)
-            setImagemQuebrada(false)
-          }}
-          erro={erros.imagemUrl}
-          placeholder="https://…"
-          dica="Cole o endereço de uma foto já publicada na internet."
-        />
-        {mostrarPreview && (
-          <img className="preview-imagem" src={imagemUrl.trim()} alt="Pré-visualização da imagem"
-            onError={() => setImagemQuebrada(true)} />
-        )}
-        {imagemQuebrada && <Alerta tipo="info">Não conseguimos carregar esta imagem. Confira o link.</Alerta>}
         <button type="submit" className="botao botao-primario botao-largo" disabled={enviando}>
           {enviando ? 'Enviando…' : 'Enviar homenagem'}
         </button>

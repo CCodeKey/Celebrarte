@@ -39,10 +39,17 @@ const MENSAGENS_PADRAO = {
   500: 'Ocorreu um erro inesperado. Tente novamente mais tarde.',
 }
 
+// Imagens enviadas por upload vêm como caminho relativo à API ("/homenagem/i/{id}");
+// links externos são devolvidos como estão
+export const urlImagem = (url) => (url?.startsWith('/') ? BASE_URL + url : url)
+
+// `body` pode ser um objeto (enviado como JSON) ou um FormData (multipart, para upload)
 export async function request(path, { method = 'GET', body } = {}) {
   const sessao = lerSessao()
   const headers = {}
-  if (body !== undefined) headers['Content-Type'] = 'application/json'
+  const multipart = body instanceof FormData
+  // No multipart o navegador define o Content-Type com o boundary
+  if (body !== undefined && !multipart) headers['Content-Type'] = 'application/json'
   if (sessao) headers.Authorization = `Bearer ${sessao.token}`
 
   let resposta
@@ -50,7 +57,7 @@ export async function request(path, { method = 'GET', body } = {}) {
     resposta = await fetch(BASE_URL + path, {
       method,
       headers,
-      body: body !== undefined ? JSON.stringify(body) : undefined,
+      body: body === undefined || multipart ? body : JSON.stringify(body),
     })
   } catch {
     throw new ApiError(0, MENSAGENS_PADRAO[0])

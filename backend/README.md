@@ -10,6 +10,7 @@ O primeiro segmento da rota é o nome completo do recurso: `/auth`, `/user`, `/c
 | ----- | ----------- |
 | `c` | contribuir (em `/homenagem/c`) |
 | `h` | homenagens (em `/celebracao/{id}/h`) |
+| `i` | imagem (em `/homenagem/i`) |
 | `f` | find (buscar) |
 | `n` | new (criar) |
 | `e` | edit (alterar) |
@@ -19,7 +20,7 @@ A exceção é o login, que fica em `/auth/login`.
 
 ### Autenticação
 
-A API usa JWT. As rotas administrativas exigem o header `Authorization: Bearer <token>`; sem ele, ou com um token inválido ou expirado, a resposta é `401`. As únicas rotas abertas são o login, o cadastro (`POST /user/n`) o formulário público de homenagem (`/homenagem/c/**`) e o mural (`/mural/**`).
+A API usa JWT. As rotas administrativas exigem o header `Authorization: Bearer <token>`; sem ele, ou com um token inválido ou expirado, a resposta é `401`. As únicas rotas abertas são o login, o cadastro (`POST /user/n`) o formulário público de homenagem (`/homenagem/c/**`), as imagens enviadas por upload (`GET /homenagem/i/**`) e o mural (`/mural/**`).
 
 | Método | Rota | Descrição |
 | ------ | ---- | --------- |
@@ -113,9 +114,18 @@ O servidor gera `tokenContribuicao` e `tokenMural`, que são usados nas rotas p�
 | ------ | ---- | ------ | --------- |
 | GET | `/homenagem/c/{tokenContribuicao}` | Público | Nome do aniversariante e data, para o formulário |
 | POST | `/homenagem/c/{tokenContribuicao}` | Público | Envia uma homenagem |
+| GET | `/homenagem/i/{id}` | Público | Arquivo da imagem enviada por upload |
 | DELETE | `/homenagem/r/{id}` | Administrativo | Exclui uma homenagem de uma celebração do usuário logado |
 
-Corpo de `POST /homenagem/c/{tokenContribuicao}`:
+`POST /homenagem/c/{tokenContribuicao}` aceita dois formatos.
+
+Com imagem por upload, `multipart/form-data` com os campos `mensagem` (texto), `imagem` (arquivo) e `imagemUrl` (texto):
+
+```bash
+curl -F mensagem="Feliz aniversário, Maria!" -F imagem=@foto.jpg http://localhost:8080/homenagem/c/{tokenContribuicao}
+```
+
+Com imagem por link (ou sem imagem), JSON:
 
 ```json
 {
@@ -124,9 +134,23 @@ Corpo de `POST /homenagem/c/{tokenContribuicao}`:
 }
 ```
 
-Os dois campos são opcionais, mas a homenagem precisa ter pelo menos um deles. A mensagem tem limite de 2.000 caracteres. Por enquanto, `imagemUrl` é apenas uma URL em texto; o upload de arquivos ainda não foi implementado.
+Todos os campos são opcionais, mas a homenagem precisa ter uma mensagem ou uma imagem. A mensagem tem limite de 2.000 caracteres. A imagem vem por arquivo ou por link, nunca os dois (RN-36).
 
-`GET /homenagem/c/{tokenContribuicao}` devolve só `nomeAniversariante` e `dataCelebracao`, sem as homenagens: quem tem o link de contribuição não lê as mensagens dos outros.
+O arquivo deve ser JPEG, PNG ou WEBP, com até 5 MB. O formato é identificado pelos primeiros bytes do arquivo, não pela extensão nem pelo `Content-Type` enviado. Os bytes ficam na tabela `imagem_homenagem`, separada de `homenagem`, para que o mural e a listagem não carreguem os arquivos. Nas respostas, uma imagem enviada por upload aparece em `imagemUrl` como caminho relativo à API (`/homenagem/i/{id}`); uma imagem por link aparece com a URL original.
+
+`GET /homenagem/c/{tokenContribuicao}` devolve só `nomeAniversariante` e `dataCelebracao`, sem as homenagens: quem tem só o link de contribuição não lê as mensagens dos outros.
+
+A resposta de `POST /homenagem/c/{tokenContribuicao}` (`201 Created`) traz a homenagem criada e o `tokenMural`, para que o convidado possa abrir o mural depois de contribuir. O token do mural só é entregue depois de um envio válido:
+
+```json
+{
+  "id": "…",
+  "mensagem": "Feliz aniversário, Maria!",
+  "imagemUrl": "/homenagem/i/…",
+  "createdAt": "2026-10-22T19:56:17.484",
+  "tokenMural": "…"
+}
+```
 
 ### Mural
 
@@ -175,12 +199,13 @@ Todo erro devolve o mesmo formato, sem stack trace:
 
 | Status | Quando |
 | ------ | ------ |
-| 400 | Campos obrigatórios ausentes, JSON malformado, id que não é UUID, parâmetro obrigatório ausente, homenagem sem mensagem e sem imagem, ou mensagem acima de 2.000 caracteres |
+| 400 | Campos obrigatórios ausentes, JSON malformado, id que não é UUID, parâmetro obrigatório ausente, homenagem sem mensagem e sem imagem, imagem por arquivo e por link ao mesmo tempo, formato de imagem não aceito, ou mensagem acima de 2.000 caracteres |
 | 401 | Rota administrativa sem token, token inválido ou expirado, ou login com e-mail ou senha inválidos |
 | 403 | Acesso negado |
 | 404 | Usuário, celebração, homenagem, token ou rota não encontrado |
 | 405 | Método HTTP não suportado na rota (ex.: `GET /auth/login`) |
 | 409 | E-mail já cadastrado |
 | 410 | Envio de homenagem após a data de encerramento |
-| 415 | Corpo enviado sem `Content-Type: application/json` |
+| 413 | Imagem acima de 5 MB |
+| 415 | Corpo enviado sem `Content-Type: application/json` (ou `multipart/form-data`, no envio de homenagem) |
 | 500 | Erro inesperado; o detalhe fica só no log do servidor |
