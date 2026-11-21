@@ -1,5 +1,6 @@
-import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
+import Logo from '../components/Logo'
 
 export default function AdminLayout() {
   const { logout } = useAuth()
@@ -14,7 +15,7 @@ export default function AdminLayout() {
     <div className="layout">
       <header className="cabecalho">
         <div className="cabecalho-conteudo">
-          <Link to="/celebracoes" className="logo">Celebrarte</Link>
+          <Logo to="/celebracoes" />
           <nav aria-label="Principal" className="cabecalho-nav">
             <NavLink to="/celebracoes" end>Celebrações</NavLink>
             <NavLink to="/perfil">Perfil</NavLink>

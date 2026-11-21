@@ -5,7 +5,7 @@ import { buscarMural } from '../services/mural'
 import { formatarData } from '../utils/datas'
 import Alerta from '../components/Alerta'
 import Carregando from '../components/Carregando'
-import HomenagemCard from '../components/HomenagemCard'
+import PainelHomenagens from '../components/PainelHomenagens'
 
 // Mural público, acessado pelo link do mural sem login (RF-17 a RF-21)
 export default function Mural() {
@@ -24,21 +24,24 @@ export default function Mural() {
     )
   }
 
+  const total = mural.homenagens.length
+
   return (
     <section className="mural">
       <header className="mural-titulo">
         <p className="sobretitulo">{formatarData(mural.dataCelebracao)}</p>
         <h1>Feliz aniversário, {mural.nomeAniversariante}!</h1>
+        {total > 0 && (
+          <p className="mural-contagem">
+            {total === 1 ? '1 homenagem feita com carinho' : `${total} homenagens feitas com carinho`}
+          </p>
+        )}
       </header>
 
-      {mural.homenagens.length === 0 ? (
+      {total === 0 ? (
         <p className="vazio">As homenagens vão aparecer aqui assim que forem enviadas.</p>
       ) : (
-        <div className="grade-homenagens grade-mural">
-          {mural.homenagens.map((h) => (
-            <HomenagemCard key={h.id} homenagem={h} />
-          ))}
-        </div>
+        <PainelHomenagens homenagens={mural.homenagens} />
       )}
     </section>
   )
