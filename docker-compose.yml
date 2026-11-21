@@ -6,6 +6,8 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-celebrarte}
       POSTGRES_USER: ${POSTGRES_USER:-celebrarte}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD no .env}
+      TZ: ${TZ:-America/Sao_Paulo}
+      PGTZ: ${TZ:-America/Sao_Paulo}
     volumes:
       - pgdata:/var/lib/postgresql/data
     # Só na máquina local, para acessar o banco com DBeaver/psql ou rodar a API fora do Docker
@@ -29,6 +31,9 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD no .env}
       JWT_SECRET: ${JWT_SECRET:?defina JWT_SECRET no .env (mínimo de 32 caracteres)}
       JWT_EXPIRACAO_MINUTOS: ${JWT_EXPIRACAO_MINUTOS:-60}
+      # A API grava datas com LocalDateTime.now() (sem fuso), e o frontend as exibe como horário local.
+      # Sem isso o container usa UTC e tudo fica 3h adiantado, inclusive o encerramento dos envios.
+      TZ: ${TZ:-America/Sao_Paulo}
 
   frontend:
     build: ./frontend
