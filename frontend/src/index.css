@@ -178,6 +178,52 @@ img { max-width: 100%; display: block; }
   text-decoration-thickness: 2px;
 }
 
+/* Sair: separado dos links de navegação por um divisor, pois é uma ação, não um destino */
+.botao-sair {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-left: 0.25rem;
+  padding: 0.45rem 0.8rem;
+  min-height: 40px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font: inherit;
+  font-weight: 400;
+  color: var(--cor-texto-suave);
+  cursor: pointer;
+  transition: color 0.15s, background-color 0.15s, border-color 0.15s;
+}
+
+.botao-sair::before {
+  content: '';
+  position: absolute;
+  /* Centralizado no espaço entre "Perfil" e o botão (gap 1.5rem + margem 0.25rem) */
+  left: -0.875rem;
+  top: 50%;
+  width: 1px;
+  height: 1.25rem;
+  background: var(--cor-borda);
+  transform: translateY(-50%);
+}
+
+.botao-sair svg { flex-shrink: 0; transition: transform 0.15s; }
+
+.botao-sair:hover {
+  color: var(--cor-perigo);
+  background: var(--cor-perigo-suave);
+  border-color: color-mix(in srgb, var(--cor-perigo) 25%, transparent);
+}
+
+.botao-sair:hover svg { transform: translateX(2px); }
+
+@media (prefers-reduced-motion: reduce) {
+  .botao-sair svg { transition: none; }
+  .botao-sair:hover svg { transform: none; }
+}
+
 @media (max-width: 860px) {
   .cabecalho-secoes { display: none; }
 }
@@ -185,6 +231,17 @@ img { max-width: 100%; display: block; }
 @media (max-width: 420px) {
   .logo img { height: 36px; }
   .cabecalho-nav { gap: 1rem; }
+  /* Em telas estreitas fica só o ícone; o texto continua disponível para leitores de tela */
+  .botao-sair { padding: 0.45rem; min-width: 40px; justify-content: center; margin-left: 0; }
+  .botao-sair::before { left: calc(-0.5rem - 0.5px); }
+  .botao-sair-texto {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
 }
 
 .conteudo {
