@@ -83,11 +83,15 @@ export default function PainelHomenagens({ homenagens }) {
         onClose={() => setAberta(null)}
         onClick={(e) => e.target === dialogo.current && dialogo.current.close()}
       >
+        {/* O botão fica fora da área com rolagem: posicionado para fora do cartão, ali dentro ele
+            gerava barra de rolagem horizontal e ficava cortado */}
+        {aberta && (
+          <button type="button" className="painel-fechar" aria-label="Fechar" onClick={() => dialogo.current.close()}>
+            ×
+          </button>
+        )}
         {aberta && (
           <div className="painel-dialogo-conteudo">
-            <button type="button" className="painel-fechar" aria-label="Fechar" onClick={() => dialogo.current.close()}>
-              ×
-            </button>
             {aberta.imagemUrl && <img src={urlImagem(aberta.imagemUrl)} alt="Imagem enviada como homenagem" />}
             {aberta.mensagem && <p className="painel-dialogo-mensagem">{aberta.mensagem}</p>}
             <time dateTime={aberta.createdAt}>{formatarDataHora(aberta.createdAt)}</time>

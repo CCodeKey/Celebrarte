@@ -1060,6 +1060,7 @@ button.bilhete { cursor: zoom-in; }
   box-shadow: var(--sombra-foto);
   max-height: calc(100vh - 32px);
   overflow-y: auto;
+  overflow-x: hidden;
   border-radius: 2px;
 }
 
