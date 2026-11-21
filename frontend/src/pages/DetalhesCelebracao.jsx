@@ -9,6 +9,12 @@ import Alerta from '../components/Alerta'
 import Carregando from '../components/Carregando'
 import CopiarLink from '../components/CopiarLink'
 import HomenagemCard from '../components/HomenagemCard'
+import QrCode from '../components/QrCode'
+import { nomeArquivo } from '../utils/qrcode'
+
+// Mesmas cores da marca usadas nas etiquetas (index.css), repetidas aqui porque o PNG é desenhado num canvas
+const COR_CONVIDADOS = '#e34155'
+const COR_MURAL = '#0277ba'
 
 export default function DetalhesCelebracao() {
   const { id } = useParams()
@@ -55,7 +61,7 @@ export default function DetalhesCelebracao() {
   return (
     <section className="pilha">
       {location.state?.criada && (
-        <Alerta tipo="sucesso">Celebração criada! Compartilhe os links abaixo.</Alerta>
+        <Alerta tipo="sucesso">Celebração criada! Compartilhe os links ou os QR Codes abaixo.</Alerta>
       )}
       <Alerta tipo="erro">{erroAcao}</Alerta>
 
@@ -76,17 +82,45 @@ export default function DetalhesCelebracao() {
         </div>
       </div>
 
-      <div className="cartao pilha">
-        <CopiarLink
-          titulo="Link de contribuição"
-          descricao="Envie aos convidados para que mandem fotos e mensagens."
-          url={linkContribuicao(c.tokenContribuicao)}
-        />
-        <CopiarLink
-          titulo="Link do mural"
-          descricao="Compartilhe com o aniversariante para ver todas as homenagens."
-          url={linkMural(c.tokenMural)}
-        />
+      <div className="compartilhar-grade">
+        {/* Cada código tem cor e etiqueta próprias para não confundir qual vai para quem */}
+        <article className="cartao compartilhar compartilhar-convidados">
+          <QrCode
+            url={linkContribuicao(c.tokenContribuicao)}
+            rotulo="Enviar homenagem"
+            titulo="Deixe sua homenagem"
+            subtitulo={`para ${c.nomeAniversariante}`}
+            cor={COR_CONVIDADOS}
+            arquivo={nomeArquivo('qrcode-enviar-homenagem', c.nomeAniversariante)}
+          />
+          <div className="compartilhar-info">
+            <span className="compartilhar-etiqueta">Para os convidados</span>
+            <CopiarLink
+              titulo="Enviar homenagem"
+              descricao="Convidados escaneiam ou abrem o link para mandar fotos e mensagens. Ótimo para convites, mensagens em grupo e cartazes no evento."
+              url={linkContribuicao(c.tokenContribuicao)}
+            />
+          </div>
+        </article>
+
+        <article className="cartao compartilhar compartilhar-mural">
+          <QrCode
+            url={linkMural(c.tokenMural)}
+            rotulo="Ver mural"
+            titulo={`Mural de ${c.nomeAniversariante}`}
+            subtitulo="Veja todas as homenagens"
+            cor={COR_MURAL}
+            arquivo={nomeArquivo('qrcode-mural', c.nomeAniversariante)}
+          />
+          <div className="compartilhar-info">
+            <span className="compartilhar-etiqueta">Para o aniversariante</span>
+            <CopiarLink
+              titulo="Ver mural"
+              descricao="Mostra todas as homenagens reunidas. Entregue ao aniversariante ou projete num telão durante a festa."
+              url={linkMural(c.tokenMural)}
+            />
+          </div>
+        </article>
       </div>
 
       <div>

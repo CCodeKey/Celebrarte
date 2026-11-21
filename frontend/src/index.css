@@ -620,6 +620,187 @@ img { max-width: 100%; display: block; }
   .copiar-link-linha .botao { flex: 1; }
 }
 
+/* ---------- Compartilhar: link + QR Code ---------- */
+
+.compartilhar-grade {
+  display: grid;
+  gap: 1rem;
+}
+
+.compartilhar {
+  --compartilhar-cor: var(--marca-vermelho);
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: clamp(1rem, 3vw, 1.75rem);
+  align-items: start;
+  overflow: hidden;
+}
+
+.compartilhar-mural { --compartilhar-cor: var(--marca-azul); }
+
+/* Faixa lateral: identifica a finalidade antes mesmo de ler */
+.compartilhar::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 5px;
+  background: var(--compartilhar-cor);
+}
+
+.compartilhar-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.compartilhar-etiqueta {
+  align-self: flex-start;
+  padding: 0.3rem 0.7rem 0.18rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--compartilhar-cor);
+  background: color-mix(in srgb, var(--compartilhar-cor) 12%, transparent);
+}
+
+@media (prefers-color-scheme: dark) {
+  .compartilhar-convidados { --compartilhar-cor: var(--marca-rosa); }
+  .compartilhar-mural { --compartilhar-cor: #6cc0f0; }
+}
+
+.compartilhar .copiar-link h3 { margin: 0; }
+
+.qr {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+/* Fundo sempre branco, também no tema escuro: leitores de QR precisam de módulos escuros sobre fundo claro */
+.qr-previa {
+  position: relative;
+  display: block;
+  width: 148px;
+  padding: 6px;
+  background: #fff;
+  border: 1px solid var(--cor-borda);
+  border-radius: 12px;
+  cursor: zoom-in;
+  transition: box-shadow 0.15s, transform 0.15s;
+}
+
+.qr-previa svg { display: block; width: 100%; height: auto; border-radius: 6px; }
+
+.qr-previa:hover { box-shadow: var(--sombra); transform: translateY(-1px); }
+
+.qr-previa-lupa {
+  position: absolute;
+  right: -8px;
+  bottom: -8px;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  color: #fff;
+  background: var(--compartilhar-cor, var(--cor-primaria));
+  box-shadow: var(--sombra);
+}
+
+.qr-baixar-rapido {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  padding: 0.35rem 0.25rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .qr-previa { transition: none; }
+  .qr-previa:hover { transform: none; }
+}
+
+@media (max-width: 560px) {
+  .compartilhar { grid-template-columns: 1fr; }
+  .compartilhar-info { order: -1; }
+  .qr-previa { width: 180px; }
+}
+
+.qr-dialogo {
+  width: min(440px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  padding: 0;
+  border: none;
+  border-radius: var(--raio);
+  background: var(--cor-superficie);
+  color: var(--cor-texto);
+  box-shadow: 0 20px 60px rgb(0 0 0 / 30%);
+}
+
+.qr-dialogo::backdrop {
+  background: rgb(30 15 20 / 55%);
+  backdrop-filter: blur(3px);
+}
+
+.qr-dialogo-conteudo {
+  position: relative;
+  padding: 2rem 1.5rem 1.5rem;
+  text-align: center;
+  border-top: 6px solid var(--qr-cor);
+}
+
+.qr-dialogo-conteudo h2 { margin: 0.25rem 0 0.25rem; font-size: 1.5rem; overflow-wrap: anywhere; }
+.qr-dialogo-conteudo .texto-suave { margin: 0 0 1rem; }
+
+.qr-dialogo-etiqueta {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--qr-cor);
+}
+
+.qr-dialogo-imagem {
+  display: block;
+  width: min(300px, 100%);
+  height: auto;
+  margin: 0 auto;
+  padding: 8px;
+  background: #fff;
+  border: 1px solid var(--cor-borda);
+  border-radius: 12px;
+}
+
+.qr-dialogo-url {
+  margin: 0.85rem 0 1.1rem;
+  font-size: 0.85rem;
+  color: var(--cor-texto-suave);
+  overflow-wrap: anywhere;
+}
+
+.qr-dialogo-fechar {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.6rem;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--cor-texto-suave);
+  font-size: 1.6rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.qr-dialogo-fechar:hover { background: var(--cor-fundo); color: var(--cor-texto); }
+
 /* ---------- Peças físicas: Polaroid, bilhete e prendedores ---------- */
 
 .polaroid,
