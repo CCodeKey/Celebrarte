@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import { useCarregar } from '../hooks/useCarregar'
 import { buscarFormulario, enviarHomenagem } from '../services/homenagens'
 import { envioEncerrado, formatarData } from '../utils/datas'
-import { urlValida } from '../utils/links'
+import { lembrarTokenMural, tokenMuralLembrado, urlValida } from '../utils/links'
 import Campo from '../components/Campo'
 import Alerta from '../components/Alerta'
 import Carregando from '../components/Carregando'
@@ -24,6 +24,8 @@ export default function Contribuir() {
   // Resposta do envio (com o tokenMural) ou null enquanto não enviou
   const [enviada, setEnviada] = useState(null)
   const [encerradaNoEnvio, setEncerradaNoEnvio] = useState(false)
+  // Mural de um envio anterior feito neste navegador (atalho para quem caiu no formulário sem querer)
+  const [tokenMural, setTokenMural] = useState(() => tokenMuralLembrado(token))
 
   if (carregando) return <Carregando />
   if (erro) {
@@ -95,7 +97,12 @@ export default function Contribuir() {
     setEnviando(true)
     setErroApi(null)
     try {
-      setEnviada(await enviarHomenagem(token, { mensagem: mensagem.trim(), imagem: arquivo, imagemUrl }))
+      const resposta = await enviarHomenagem(token, { mensagem: mensagem.trim(), imagem: arquivo, imagemUrl })
+      if (resposta?.tokenMural) {
+        lembrarTokenMural(token, resposta.tokenMural)
+        setTokenMural(resposta.tokenMural)
+      }
+      setEnviada(resposta)
     } catch (err) {
       if (err.status === 410) setEncerradaNoEnvio(true)
       else setErroApi(err.message)
@@ -132,6 +139,9 @@ export default function Contribuir() {
         <button type="submit" className="botao botao-primario botao-largo" disabled={enviando}>
           {enviando ? 'Enviando…' : 'Enviar homenagem'}
         </button>
+        {tokenMural && (
+          <Link to={`/m/${tokenMural}`} className="botao botao-secundario botao-largo">Ver mural</Link>
+        )}
       </form>
     </section>
   )
