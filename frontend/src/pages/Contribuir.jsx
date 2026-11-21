@@ -140,7 +140,7 @@ export default function Contribuir() {
           {enviando ? 'Enviando…' : 'Enviar homenagem'}
         </button>
         {tokenMural && (
-          <Link to={`/m/${tokenMural}`} className="botao botao-secundario botao-largo">Ver mural</Link>
+          <Link to={`/m/${tokenMural}`} className="rodape-cartao">Ver mural</Link>
         )}
       </form>
     </section>

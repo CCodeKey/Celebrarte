@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import Campo from './Campo'
 import Alerta from './Alerta'
-import { deInputData, paraInputData } from '../utils/datas'
+import { dataEncerramento, deInputData, envioEncerrado, formatarData, paraInputData } from '../utils/datas'
 
 const LIMITE_NOME = 255
 
@@ -13,11 +13,20 @@ export default function CelebracaoForm({ inicial, textoBotao, onSalvar, onCancel
   const [erroApi, setErroApi] = useState(null)
   const [salvando, setSalvando] = useState(false)
 
+  // Com uma data já encerrada, ninguém conseguiria enviar homenagens. Costuma ser a data de nascimento digitada por engano
+  const dataValida = !!data && !Number.isNaN(new Date(deInputData(data)).getTime())
+  const prazoEncerrado = dataValida && envioEncerrado(deInputData(data))
+  const dicaData = dataValida
+    ? `As homenagens poderão ser enviadas até ${formatarData(dataEncerramento(deInputData(data)))}.`
+    : 'Não é a data de nascimento: informe o dia em que o aniversário será comemorado. As homenagens podem ser enviadas até dois dias depois.'
+
   function validar() {
     const novos = {}
     if (!nome.trim()) novos.nome = 'Informe o nome do aniversariante.'
     else if (nome.trim().length > LIMITE_NOME) novos.nome = `Use no máximo ${LIMITE_NOME} caracteres.`
-    if (!data) novos.data = 'Informe a data da celebração.'
+    if (!data) novos.data = 'Informe a data da comemoração.'
+    // Só bloqueia na criação: ao editar, a celebração pode já ter acontecido
+    else if (!inicial && prazoEncerrado) novos.data = 'Esta data já passou. Informe a data do próximo aniversário, não a de nascimento.'
     setErros(novos)
     return Object.keys(novos).length === 0
   }
@@ -48,14 +57,20 @@ export default function CelebracaoForm({ inicial, textoBotao, onSalvar, onCancel
         required
       />
       <Campo
-        label="Data do aniversário"
+        label="Data da comemoração do aniversário"
         type="date"
         value={data}
         onChange={(e) => setData(e.target.value)}
         erro={erros.data}
-        dica="As homenagens podem ser enviadas até dois dias depois desta data."
+        dica={dicaData}
         required
       />
+      {prazoEncerrado && !erros.data && (
+        <Alerta tipo="info">
+          Esta data já passou, então o prazo para enviar homenagens estaria encerrado.
+          Se você informou a data de nascimento, troque pela data do aniversário que será comemorado.
+        </Alerta>
+      )}
       <div className="formulario-acoes">
         {onCancelar && (
           <button type="button" className="botao botao-fantasma" onClick={onCancelar}>

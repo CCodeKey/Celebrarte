@@ -14,8 +14,10 @@ export const paraInputData = (valor) => (valor ? valor.slice(0, 10) : '')
 export const deInputData = (valor) => (valor ? `${valor}T00:00:00` : null)
 
 // RN-33: o envio encerra dois dias após a data do aniversário
-export function envioEncerrado(dataCelebracao) {
+export function dataEncerramento(dataCelebracao) {
   const encerramento = new Date(dataCelebracao)
   encerramento.setDate(encerramento.getDate() + 2)
-  return new Date() > encerramento
+  return encerramento
 }
+
+export const envioEncerrado = (dataCelebracao) => new Date() > dataEncerramento(dataCelebracao)
