@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
 import { urlImagem } from '../services/api'
 import { formatarDataHora } from '../utils/datas'
+import Dialogo from './Dialogo'
 import { Bilhete, CORES_PRENDEDOR, Polaroid } from './Polaroid'
 
 const PRENDEDORES = ['fita', 'alfinete', 'fita', 'clipe']
 const PAPEIS = ['amarelo', 'rosa', 'azul', 'branco']
 const PROPORCOES = ['1 / 1', '4 / 5', '5 / 4', '1 / 1']
 const LARGURAS = ['84%', '92%', '100%']
+const TAMANHO_RESUMO = 60
 
 // Hash simples e estável: a mesma homenagem cai sempre na mesma posição/inclinação
 function hash(valor) {
@@ -28,12 +30,38 @@ function aparencia(id) {
   }
 }
 
+// Homenagem com imagem vira Polaroid; só com texto vira bilhete
+function ItemPainel({ homenagem, onAbrir }) {
+  const { mensagem, imagemUrl } = homenagem
+  const visual = aparencia(homenagem.id)
+  const estilo = { '--rot': `${visual.rotacao}deg`, '--dx': `${visual.deslocamento}px`, '--largura': visual.largura }
+  const botao = {
+    as: 'button',
+    type: 'button',
+    'aria-label': mensagem ? `Abrir homenagem: ${mensagem.slice(0, TAMANHO_RESUMO)}` : 'Abrir foto da homenagem',
+    onClick: () => onAbrir(homenagem),
+    prendedor: visual.prendedor,
+    cor: visual.cor,
+  }
+
+  return (
+    <li className="painel-item" style={estilo}>
+      {imagemUrl ? (
+        <Polaroid {...botao} foto={urlImagem(imagemUrl)} legenda={mensagem} proporcao={visual.proporcao} />
+      ) : (
+        <Bilhete {...botao} texto={mensagem} papel={visual.papel} />
+      )}
+    </li>
+  )
+}
+
 // Mural em formato de painel: fotos e bilhetes presos com fita, alfinete ou clipe,
 // levemente tortos e sobrepostos. Clicar abre a homenagem completa.
 export default function PainelHomenagens({ homenagens }) {
   const dialogo = useRef(null)
   const [aberta, setAberta] = useState(null)
 
+  // Abre depois de renderizar o conteúdo, para o foco inicial cair no botão de fechar
   useEffect(() => {
     if (aberta && !dialogo.current.open) dialogo.current.showModal()
   }, [aberta])
@@ -41,63 +69,27 @@ export default function PainelHomenagens({ homenagens }) {
   return (
     <>
       <ul className="painel">
-        {homenagens.map((h) => {
-          const a = aparencia(h.id)
-          const estilo = { '--rot': `${a.rotacao}deg`, '--dx': `${a.deslocamento}px`, '--largura': a.largura }
-          const rotulo = h.mensagem ? `Abrir homenagem: ${h.mensagem.slice(0, 60)}` : 'Abrir foto da homenagem'
-          return (
-            <li key={h.id} className="painel-item" style={estilo}>
-              {h.imagemUrl ? (
-                <Polaroid
-                  as="button"
-                  type="button"
-                  aria-label={rotulo}
-                  onClick={() => setAberta(h)}
-                  foto={urlImagem(h.imagemUrl)}
-                  legenda={h.mensagem}
-                  prendedor={a.prendedor}
-                  cor={a.cor}
-                  proporcao={a.proporcao}
-                />
-              ) : (
-                <Bilhete
-                  as="button"
-                  type="button"
-                  aria-label={rotulo}
-                  onClick={() => setAberta(h)}
-                  texto={h.mensagem}
-                  papel={a.papel}
-                  prendedor={a.prendedor}
-                  cor={a.cor}
-                />
-              )}
-            </li>
-          )
-        })}
+        {homenagens.map((homenagem) => (
+          <ItemPainel key={homenagem.id} homenagem={homenagem} onAbrir={setAberta} />
+        ))}
       </ul>
 
-      <dialog
-        ref={dialogo}
-        className="painel-dialogo"
-        aria-label="Homenagem"
-        onClose={() => setAberta(null)}
-        onClick={(e) => e.target === dialogo.current && dialogo.current.close()}
-      >
+      <Dialogo ref={dialogo} className="painel-dialogo" aria-label="Homenagem" onClose={() => setAberta(null)}>
         {/* O botão fica fora da área com rolagem: posicionado para fora do cartão, ali dentro ele
             gerava barra de rolagem horizontal e ficava cortado */}
         {aberta && (
-          <button type="button" className="painel-fechar" aria-label="Fechar" onClick={() => dialogo.current.close()}>
-            ×
-          </button>
+          <>
+            <button type="button" className="painel-fechar" aria-label="Fechar" onClick={() => dialogo.current.close()}>
+              ×
+            </button>
+            <div className="painel-dialogo-conteudo">
+              {aberta.imagemUrl && <img src={urlImagem(aberta.imagemUrl)} alt="Imagem enviada como homenagem" />}
+              {aberta.mensagem && <p className="painel-dialogo-mensagem">{aberta.mensagem}</p>}
+              <time dateTime={aberta.createdAt}>{formatarDataHora(aberta.createdAt)}</time>
+            </div>
+          </>
         )}
-        {aberta && (
-          <div className="painel-dialogo-conteudo">
-            {aberta.imagemUrl && <img src={urlImagem(aberta.imagemUrl)} alt="Imagem enviada como homenagem" />}
-            {aberta.mensagem && <p className="painel-dialogo-mensagem">{aberta.mensagem}</p>}
-            <time dateTime={aberta.createdAt}>{formatarDataHora(aberta.createdAt)}</time>
-          </div>
-        )}
-      </dialog>
+      </Dialogo>
     </>
   )
 }

@@ -4,6 +4,10 @@ import { urlValida } from '../utils/links'
 // Mesmas regras do backend (RNF-05 a RNF-07); lá o tipo é conferido pelo conteúdo do arquivo
 const TIPOS_ACEITOS = ['image/jpeg', 'image/png', 'image/webp']
 const LIMITE_BYTES = 5 * 1024 * 1024
+const MODOS = [
+  { modo: 'arquivo', texto: 'Enviar do dispositivo' },
+  { modo: 'link', texto: 'Colar um link' },
+]
 
 // valor: { modo: 'arquivo' | 'link', arquivo: File | null, url: string }
 export default function SeletorImagem({ valor, onChange, erro, onErro }) {
@@ -57,16 +61,16 @@ export default function SeletorImagem({ valor, onChange, erro, onErro }) {
 
   const url = valor.url.trim()
   const mostrarPreviewLink = valor.modo === 'link' && urlValida(url) && !linkQuebrado
+  const idErro = `${id}-erro`
+  const descricaoLink = [`${id}-link-dica`, linkQuebrado && `${id}-link-quebrado`, erro && idErro]
+    .filter(Boolean).join(' ')
 
   return (
-    <fieldset className="seletor-imagem" aria-describedby={erro ? `${id}-erro` : undefined}>
+    <fieldset className="seletor-imagem" aria-describedby={erro ? idErro : undefined}>
       <legend>Imagem (opcional)</legend>
 
       <div className="seletor-modos" role="radiogroup" aria-label="Como adicionar a imagem">
-        {[
-          ['arquivo', 'Enviar do dispositivo'],
-          ['link', 'Colar um link'],
-        ].map(([modo, texto]) => (
+        {MODOS.map(({ modo, texto }) => (
           <label key={modo} className={valor.modo === modo ? 'ativo' : undefined}>
             <input type="radio" name={`${id}-modo`} value={modo} checked={valor.modo === modo}
               onChange={() => trocarModo(modo)} />
@@ -113,6 +117,8 @@ export default function SeletorImagem({ valor, onChange, erro, onErro }) {
           id={`${id}-arquivo`}
           type="file"
           accept={TIPOS_ACEITOS.join(',')}
+          aria-invalid={!!erro}
+          aria-describedby={erro ? idErro : undefined}
           className="visualmente-oculto"
           onChange={(e) => escolherArquivo(e.target.files[0])}
         />
@@ -128,22 +134,27 @@ export default function SeletorImagem({ valor, onChange, erro, onErro }) {
             placeholder="https://…"
             value={valor.url}
             aria-invalid={!!erro}
+            aria-describedby={descricaoLink}
             onChange={(e) => {
               setLinkQuebrado(false)
               onErro(null)
               onChange({ ...valor, url: e.target.value })
             }}
           />
-          <span className="campo-dica">Cole o endereço de uma foto já publicada na internet.</span>
+          <span id={`${id}-link-dica`} className="campo-dica">Cole o endereço de uma foto já publicada na internet.</span>
           {mostrarPreviewLink && (
             <img className="preview-imagem" src={url} alt="Pré-visualização da imagem do link"
               onError={() => setLinkQuebrado(true)} />
           )}
-          {linkQuebrado && <span className="campo-dica">Não conseguimos carregar esta imagem. Confira o link.</span>}
+          {linkQuebrado && (
+            <span id={`${id}-link-quebrado`} className="campo-dica" role="status">
+              Não conseguimos carregar esta imagem. Confira o link.
+            </span>
+          )}
         </div>
       )}
 
-      {erro && <span id={`${id}-erro`} className="campo-erro">{erro}</span>}
+      {erro && <span id={idErro} className="campo-erro">{erro}</span>}
     </fieldset>
   )
 }

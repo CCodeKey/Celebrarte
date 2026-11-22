@@ -13,7 +13,7 @@ export default function Cadastro() {
   const [erroApi, setErroApi] = useState(null)
   const [enviando, setEnviando] = useState(false)
 
-  const alterar = (campo) => (e) => setForm({ ...form, [campo]: e.target.value })
+  const alterar = (campo) => (e) => setForm((atual) => ({ ...atual, [campo]: e.target.value }))
 
   function validar() {
     const novos = {}
@@ -50,7 +50,7 @@ export default function Cadastro() {
   return (
     <section className="cartao cartao-estreito">
       <h1>Criar conta</h1>
-      <p className="texto-suave">Só quem organizam celebrações precisam ter contas. Convidados participam pelo link.</p>
+      <p className="texto-suave">Só quem organiza celebrações precisa ter conta. Convidados participam pelo link.</p>
       <form className="formulario" onSubmit={enviar} noValidate>
         <Alerta tipo="erro">{erroApi}</Alerta>
         <Campo label="Nome" autoComplete="name" value={form.nome} onChange={alterar('nome')}

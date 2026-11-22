@@ -1,13 +1,20 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+
+const DURACAO_CONFIRMACAO = 2000
 
 export default function CopiarLink({ titulo, descricao, url }) {
   const [copiado, setCopiado] = useState(false)
+  const timer = useRef(null)
+
+  // Não deixa o timer da confirmação rodando depois que o componente sai da tela
+  useEffect(() => () => clearTimeout(timer.current), [])
 
   async function copiar() {
     try {
       await navigator.clipboard.writeText(url)
       setCopiado(true)
-      setTimeout(() => setCopiado(false), 2000)
+      clearTimeout(timer.current)
+      timer.current = setTimeout(() => setCopiado(false), DURACAO_CONFIRMACAO)
     } catch {
       // Sem permissão de área de transferência: o link continua visível para copiar à mão
     }
@@ -28,6 +35,8 @@ export default function CopiarLink({ titulo, descricao, url }) {
           Abrir
         </a>
       </div>
+      {/* A troca do texto do botão não é anunciada por leitores de tela */}
+      <span className="visualmente-oculto" role="status">{copiado ? 'Link copiado.' : ''}</span>
     </div>
   )
 }

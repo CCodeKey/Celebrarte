@@ -3,6 +3,7 @@ import { definirAoExpirarSessao, lerSessao, limparSessao, salvarSessao } from '.
 import { login as loginApi } from '../services/auth'
 
 const AuthContext = createContext(null)
+const ATRASO_MAXIMO_TIMER = 2 ** 31 - 1
 
 export function AuthProvider({ children }) {
   const [sessao, setSessao] = useState(lerSessao)
@@ -13,6 +14,12 @@ export function AuthProvider({ children }) {
     setSessao(null)
   }, [])
 
+  // Encerra a sessão e avisa na tela de login
+  const expirarSessao = useCallback(() => {
+    logout()
+    setSessaoExpirou(true)
+  }, [logout])
+
   const login = useCallback(async (email, senha) => {
     const { token, expiraEm } = await loginApi(email, senha)
     const nova = { token, expiraEm }
@@ -21,24 +28,20 @@ export function AuthProvider({ children }) {
     setSessaoExpirou(false)
   }, [])
 
-  // Token recusado pelo backend: encerra a sessão e avisa na tela de login
+  // Token recusado pelo backend
   useEffect(() => {
-    definirAoExpirarSessao(() => {
-      logout()
-      setSessaoExpirou(true)
-    })
-  }, [logout])
+    definirAoExpirarSessao(expirarSessao)
+  }, [expirarSessao])
 
-  // Encerra a sessão no horário em que o token expira, mesmo sem nova requisição
+  // Horário de expiração do token atingido, mesmo sem nova requisição
   useEffect(() => {
     if (!sessao) return
     const restante = new Date(sessao.expiraEm) - new Date()
-    const timer = setTimeout(() => {
-      logout()
-      setSessaoExpirou(true)
-    }, Math.max(restante, 0))
+    // Acima do limite do setTimeout (~24,8 dias) ele dispararia na hora; o 401 do backend cobre esse caso
+    if (restante > ATRASO_MAXIMO_TIMER) return
+    const timer = setTimeout(expirarSessao, Math.max(restante, 0))
     return () => clearTimeout(timer)
-  }, [sessao, logout])
+  }, [sessao, expirarSessao])
 
   const valor = useMemo(
     () => ({ autenticado: !!sessao, sessaoExpirou, login, logout }),

@@ -3,8 +3,8 @@ import { useParams } from 'react-router-dom'
 import { useCarregar } from '../hooks/useCarregar'
 import { buscarMural } from '../services/mural'
 import { formatarData } from '../utils/datas'
-import Alerta from '../components/Alerta'
 import Carregando from '../components/Carregando'
+import ErroLinkPublico from '../components/ErroLinkPublico'
 import PainelHomenagens from '../components/PainelHomenagens'
 
 // Mural público, acessado pelo link do mural sem login (RF-17 a RF-21)
@@ -15,12 +15,8 @@ export default function Mural() {
   if (carregando) return <Carregando texto="Preparando o mural…" />
   if (erro) {
     return (
-      <section className="cartao cartao-medio">
-        <h1>Mural não encontrado</h1>
-        <Alerta tipo="erro">
-          {erro.status === 404 ? 'Não encontramos este mural. Confira o link recebido.' : erro.message}
-        </Alerta>
-      </section>
+      <ErroLinkPublico titulo="Mural não encontrado" erro={erro}
+        mensagemNaoEncontrado="Não encontramos este mural. Confira o link recebido." />
     )
   }
 

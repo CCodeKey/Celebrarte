@@ -5,16 +5,38 @@ import { buscarCelebracao, excluirCelebracao, listarHomenagensRecebidas } from '
 import { excluirHomenagem } from '../services/homenagens'
 import { formatarData, formatarDataHora } from '../utils/datas'
 import { linkContribuicao, linkMural } from '../utils/links'
+import { nomeArquivo } from '../utils/qrcode'
 import Alerta from '../components/Alerta'
 import Carregando from '../components/Carregando'
-import CopiarLink from '../components/CopiarLink'
+import CartaoCompartilhar from '../components/CartaoCompartilhar'
 import HomenagemCard from '../components/HomenagemCard'
-import QrCode from '../components/QrCode'
-import { nomeArquivo } from '../utils/qrcode'
 
 // Mesmas cores da marca usadas nas etiquetas (index.css), repetidas aqui porque o PNG é desenhado num canvas
 const COR_CONVIDADOS = '#e34155'
 const COR_MURAL = '#0277ba'
+
+function HomenagensRecebidas({ homenagens, erro, carregando, onExcluir }) {
+  return (
+    <div>
+      <h2>
+        Homenagens recebidas
+        {homenagens && <span className="contagem">{homenagens.length}</span>}
+      </h2>
+      {carregando && <Carregando />}
+      <Alerta tipo="erro">{erro?.message}</Alerta>
+      {homenagens?.length === 0 && (
+        <p className="vazio">Nenhuma homenagem ainda. Compartilhe o link de contribuição!</p>
+      )}
+      {homenagens?.length > 0 && (
+        <div className="grade-homenagens">
+          {homenagens.map((h) => (
+            <HomenagemCard key={h.id} homenagem={h} onExcluir={onExcluir} />
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
 
 export default function DetalhesCelebracao() {
   const { id } = useParams()
@@ -35,11 +57,11 @@ export default function DetalhesCelebracao() {
     )
   }
 
-  const c = celebracao.dados
-  const encerrada = new Date() > new Date(c.dataEncerramento)
+  const { nomeAniversariante, dataCelebracao, dataEncerramento, tokenContribuicao, tokenMural } = celebracao.dados
+  const encerrada = new Date() > new Date(dataEncerramento)
 
   async function excluir() {
-    if (!window.confirm(`Excluir a celebração de ${c.nomeAniversariante}? Todas as homenagens serão apagadas.`)) return
+    if (!window.confirm(`Excluir a celebração de ${nomeAniversariante}? Todas as homenagens serão apagadas.`)) return
     try {
       await excluirCelebracao(id)
       navigate('/celebracoes', { replace: true })
@@ -52,7 +74,7 @@ export default function DetalhesCelebracao() {
     if (!window.confirm('Excluir esta homenagem? Ela deixará de aparecer no mural.')) return
     try {
       await excluirHomenagem(homenagem.id)
-      homenagens.setDados(homenagens.dados.filter((h) => h.id !== homenagem.id))
+      homenagens.setDados((atuais) => atuais.filter((h) => h.id !== homenagem.id))
     } catch (err) {
       setErroAcao(err.message)
     }
@@ -68,12 +90,10 @@ export default function DetalhesCelebracao() {
       <div className="titulo-pagina">
         <div>
           <Link to="/celebracoes" className="voltar">← Minhas celebrações</Link>
-          <h1>{c.nomeAniversariante}</h1>
+          <h1>{nomeAniversariante}</h1>
           <p className="texto-suave">
-            Aniversário em {formatarData(c.dataCelebracao)} ·{' '}
-            {encerrada
-              ? 'envios encerrados'
-              : `envios abertos até ${formatarDataHora(c.dataEncerramento)}`}
+            Aniversário em {formatarData(dataCelebracao)} ·{' '}
+            {encerrada ? 'envios encerrados' : `envios abertos até ${formatarDataHora(dataEncerramento)}`}
           </p>
         </div>
         <div className="acoes">
@@ -83,64 +103,40 @@ export default function DetalhesCelebracao() {
       </div>
 
       <div className="compartilhar-grade">
-        {/* Cada código tem cor e etiqueta próprias para não confundir qual vai para quem */}
-        <article className="cartao compartilhar compartilhar-convidados">
-          <QrCode
-            url={linkContribuicao(c.tokenContribuicao)}
-            rotulo="Enviar homenagem"
-            titulo="Deixe sua homenagem"
-            subtitulo={`para ${c.nomeAniversariante}`}
-            cor={COR_CONVIDADOS}
-            arquivo={nomeArquivo('qrcode-enviar-homenagem', c.nomeAniversariante)}
-          />
-          <div className="compartilhar-info">
-            <span className="compartilhar-etiqueta">Para os convidados</span>
-            <CopiarLink
-              titulo="Enviar homenagem"
-              descricao="Convidados escaneiam ou abrem o link para mandar fotos e mensagens. Ótimo para convites, mensagens em grupo e cartazes no evento."
-              url={linkContribuicao(c.tokenContribuicao)}
-            />
-          </div>
-        </article>
-
-        <article className="cartao compartilhar compartilhar-mural">
-          <QrCode
-            url={linkMural(c.tokenMural)}
-            rotulo="Ver mural"
-            titulo={`Mural de ${c.nomeAniversariante}`}
-            subtitulo="Veja todas as homenagens"
-            cor={COR_MURAL}
-            arquivo={nomeArquivo('qrcode-mural', c.nomeAniversariante)}
-          />
-          <div className="compartilhar-info">
-            <span className="compartilhar-etiqueta">Para o aniversariante</span>
-            <CopiarLink
-              titulo="Ver mural"
-              descricao="Mostra todas as homenagens reunidas. Entregue ao aniversariante ou projete num telão durante a festa."
-              url={linkMural(c.tokenMural)}
-            />
-          </div>
-        </article>
+        <CartaoCompartilhar
+          variante="convidados"
+          etiqueta="Para os convidados"
+          titulo="Enviar homenagem"
+          descricao="Convidados escaneiam ou abrem o link para mandar fotos e mensagens. Ótimo para convites, mensagens em grupo e cartazes no evento."
+          url={linkContribuicao(tokenContribuicao)}
+          qr={{
+            titulo: 'Deixe sua homenagem',
+            subtitulo: `para ${nomeAniversariante}`,
+            cor: COR_CONVIDADOS,
+            arquivo: nomeArquivo('qrcode-enviar-homenagem', nomeAniversariante),
+          }}
+        />
+        <CartaoCompartilhar
+          variante="mural"
+          etiqueta="Para o aniversariante"
+          titulo="Ver mural"
+          descricao="Mostra todas as homenagens reunidas. Entregue ao aniversariante ou projete num telão durante a festa."
+          url={linkMural(tokenMural)}
+          qr={{
+            titulo: `Mural de ${nomeAniversariante}`,
+            subtitulo: 'Veja todas as homenagens',
+            cor: COR_MURAL,
+            arquivo: nomeArquivo('qrcode-mural', nomeAniversariante),
+          }}
+        />
       </div>
 
-      <div>
-        <h2>
-          Homenagens recebidas
-          {homenagens.dados && <span className="contagem">{homenagens.dados.length}</span>}
-        </h2>
-        {homenagens.carregando && <Carregando />}
-        <Alerta tipo="erro">{homenagens.erro?.message}</Alerta>
-        {homenagens.dados?.length === 0 && (
-          <p className="vazio">Nenhuma homenagem ainda. Compartilhe o link de contribuição!</p>
-        )}
-        {homenagens.dados?.length > 0 && (
-          <div className="grade-homenagens">
-            {homenagens.dados.map((h) => (
-              <HomenagemCard key={h.id} homenagem={h} onExcluir={removerHomenagem} />
-            ))}
-          </div>
-        )}
-      </div>
+      <HomenagensRecebidas
+        homenagens={homenagens.dados}
+        erro={homenagens.erro}
+        carregando={homenagens.carregando}
+        onExcluir={removerHomenagem}
+      />
     </section>
   )
 }
